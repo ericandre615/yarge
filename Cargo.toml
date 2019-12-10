@@ -1,0 +1,12 @@
+[package]
+name = "raw-gl"
+version = "0.1.0"
+authors = ["Eric Andre <ericandre615@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#sdl2 = { version = "0.32.2", features = ["bundled", "static-link"] }
+sdl2 = "0.32.2"
+gl = "0.14.0"
