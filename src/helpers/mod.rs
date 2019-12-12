@@ -1,5 +1,7 @@
 extern crate gl;
 
+use crate::resources::Resources;
+
 use std::ffi::{CString, CStr};
 
 // http://nercury.github.io/rust/opengl/tutorial/2018/02/10/opengl-in-rust-from-scratch-03-compiling-shaders.html
@@ -60,6 +62,21 @@ impl Program {
         Ok(Program { id: program_id })
     }
 
+    pub fn from_resource(res: &Resources, name: &str) -> Result<Program, String> {
+        const POSSIBLE_EXT: [&str; 2] = [
+            ".vertex",
+            ".fragment",
+        ];
+
+        let shaders = POSSIBLE_EXT.iter()
+            .map(|file_extension| {
+                Shader::from_res(res, &format!("{}{}", name, file_extension))
+            })
+            .collect::<Result<Vec<Shader>, String>>()?;
+
+        Program::from_shaders(&shaders[..])
+    }
+
     pub fn set_used(&self) {
         unsafe {
             gl::UseProgram(self.id);
@@ -98,6 +115,23 @@ impl Shader {
 
     pub fn from_fragment_source(source: &CStr) -> Result<Shader, String> {
         Shader::from_source(source, gl::FRAGMENT_SHADER)
+    }
+
+    pub fn from_res(res: &Resources, name: &str) -> Result<Shader, String> {
+        const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] = [
+            (".vertex", gl::VERTEX_SHADER),
+            (".fragment", gl::FRAGMENT_SHADER),
+        ];
+        let shader_kind = POSSIBLE_EXT.iter()
+            .find(|&&(file_extension, _)| {
+                name.ends_with(file_extension)
+            })
+            .map(|&(_, kind)| kind)
+            .ok_or_else(|| format!("Can not determine shader type for resource {}", name))?;
+        let source = res.load_cstring(name)
+            .map_err(|e| format!("Error loading resource {}: {:?}", name, e))?;
+
+        Shader::from_source(&source, shader_kind)
     }
 
     pub fn id(&self) -> gl::types::GLuint {

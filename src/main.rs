@@ -2,8 +2,12 @@ extern crate sdl2;
 extern crate gl;
 
 use std::ffi::CString;
+use std::path::Path;
 
-mod helpers;
+pub mod helpers;
+pub mod resources;
+
+use resources::Resources;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -31,16 +35,22 @@ fn main() {
 
     unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
 
-    let vert_shader = helpers::Shader::from_vertex_source(
-        &CString::new(include_str!("triangle.vertex")).unwrap()
-    ).unwrap();
+    let res = Resources::from_relative_path(Path::new("assets")).unwrap();
 
-    let frag_shader = helpers::Shader::from_fragment_source(
-        &CString::new(include_str!("triangle.fragment")).unwrap()
-    ).unwrap();
+    //let vert_shader = helpers::Shader::from_vertex_source(
+    //    &CString::new(include_str!("triangle.vertex")).unwrap()
+    //).unwrap();
 
-    let shader_program = helpers::Program::from_shaders(
-        &[vert_shader, frag_shader]
+    //let frag_shader = helpers::Shader::from_fragment_source(
+    //    &CString::new(include_str!("triangle.fragment")).unwrap()
+    //).unwrap();
+
+    //let shader_program = helpers::Program::from_shaders(
+    //    &[vert_shader, frag_shader]
+    //).unwrap();
+
+    let shader_program = helpers::Program::from_resource(
+        &res, "shaders/triangle"
     ).unwrap();
 
     shader_program.set_used();
