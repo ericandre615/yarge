@@ -1,5 +1,4 @@
-extern crate gl;
-
+use gl;
 use std::ffi::{CString, CStr};
 
 // http://nercury.github.io/rust/opengl/tutorial/2018/02/10/opengl-in-rust-from-scratch-03-compiling-shaders.html
@@ -13,11 +12,12 @@ fn create_whitespace_cstring_with_len(len: usize) -> CString {
 }
 
 pub struct Program {
+    gl: gl::Gl,
     id: gl::types::GLuint,
 }
 
 impl Program {
-    pub fn from_shaders(shaders: &[Shader]) -> Result<Program, String> {
+    pub fn from_shaders(gl: &gl::Gl, shaders: &[Shader]) -> Result<Program, String> {
         let program_id = unsafe { gl::CreateProgram() };
         let mut success: gl::types::GLint = 1;
 
@@ -57,7 +57,7 @@ impl Program {
             }
         }
 
-        Ok(Program { id: program_id })
+        Ok(Program { gl: gl.clone(), id: program_id })
     }
 
     pub fn set_used(&self) {
@@ -71,25 +71,27 @@ impl Program {
     }
 }
 
-pub struct Shader {
-    id: gl::types::GLuint,
-}
-
 impl Drop for Program {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteProgram(self.id);
+            self.gl::DeleteProgram(self.id);
         }
     }
 }
 
+pub struct Shader {
+    gl: gl::Gl,
+    id: gl::types::GLuint,
+}
+
 impl Shader {
-    fn from_source(
+    pub fn from_source(
+        gl: &gl::Gl,
         source: &CStr,
         kind: gl::types::GLenum
     ) -> Result<Shader, String> {
         let id = shader_from_source(source, kind)?;
-        Ok(Shader { id })
+        Ok(Shader { gl: gl.clone(), id })
     }
 
     pub fn from_vertex_source(source: &CStr) -> Result<Shader, String> {
@@ -108,7 +110,7 @@ impl Shader {
 impl Drop for Shader {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteShader(self.id);
+            self.gl::DeleteShader(self.id);
         }
     }
 }

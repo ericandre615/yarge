@@ -3,7 +3,7 @@ extern crate gl;
 
 use std::ffi::CString;
 
-mod helpers;
+pub mod helpers;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -26,20 +26,25 @@ fn main() {
         .unwrap();
 
     let _gl_context = window.gl_create_context().unwrap();
-    let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
+    let gl = gl::Gl::load_with(|s| {
+        video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void
+    });
     let mut event_pump = sdl.event_pump().unwrap();
 
     unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
 
     let vert_shader = helpers::Shader::from_vertex_source(
+        &gl,
         &CString::new(include_str!("triangle.vertex")).unwrap()
     ).unwrap();
 
     let frag_shader = helpers::Shader::from_fragment_source(
+        &gl,
         &CString::new(include_str!("triangle.fragment")).unwrap()
     ).unwrap();
 
     let shader_program = helpers::Program::from_shaders(
+        &gl
         &[vert_shader, frag_shader]
     ).unwrap();
 

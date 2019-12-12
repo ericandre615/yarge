@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 #sdl2 = { version = "0.32.2", features = ["bundled", "static-link"] }
 sdl2 = "0.32.2"
-gl = "0.14.0"
+gl = { path = "lib/gl" } #"0.14.0"
