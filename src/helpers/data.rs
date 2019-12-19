@@ -68,3 +68,64 @@ impl u2_u10_u10_u10_rev_float {
         );
     }
 }
+
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct i8_ {
+    pub d0: i8,
+}
+
+impl i8_ {
+    pub fn new(d0: i8) -> i8_ {
+        i8_ { d0 }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribIPointer(
+            location as gl::types::GLuint,
+            1,
+            gl::BYTE,
+            stride as gl::types::GLint,
+            offset as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<i8> for i8_ {
+    fn from(other: i8) -> Self {
+        i8_::new(other)
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct i8_float {
+    pub d0: i8,
+}
+
+impl i8_float {
+    pub fn new(d0: i8) -> i8_float {
+        i8_float { d0 }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            1,
+            gl::BYTE,
+            gl::TRUE,
+            stride as gl::types::GLint,
+            offset as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<i8> for i8_float {
+    fn from(other: i8) -> Self {
+        i8_float::new(other)
+    }
+}

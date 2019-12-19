@@ -5,11 +5,12 @@ extern crate sdl2;
 extern crate gl;
 extern crate vec_2_10_10_10;
 
-use std::ffi::CString;
 use std::path::Path;
 
 pub mod helpers;
 pub mod resources;
+mod triangle;
+mod debug;
 
 use helpers::data;
 use resources::Resources;
@@ -21,7 +22,7 @@ const HEIGHT: u32 = 480;
 
 fn main() {
     if let Err(e) = run() {
-        println!("{}", failure_to_string(e));
+        println!("{}", debug::failure_to_string(e));
     }
 }
 
@@ -57,58 +58,7 @@ fn run() -> Result<(), failure::Error> {
     unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
-
-    //let vert_shader = helpers::Shader::from_vertex_source(
-    //    &CString::new(include_str!("triangle.vertex")).unwrap()
-    //).unwrap();
-
-    //let frag_shader = helpers::Shader::from_fragment_source(
-    //    &CString::new(include_str!("triangle.fragment")).unwrap()
-    //).unwrap();
-
-    //let shader_program = helpers::Program::from_shaders(
-    //    &[vert_shader, frag_shader]
-    //).unwrap();
-
-    let shader_program = helpers::Program::from_resource(
-        &res, "shaders/triangle"
-    ).unwrap();
-
-    shader_program.set_used();
-
-    let vertices: Vec<Vertex> = vec![
-        // positions        // colors
-       Vertex { pos: (-0.5, -0.5, 0.0).into(), clr: (1.0, 0.0, 0.0, 1.0).into() }, // bottom right
-       Vertex { pos: (0.5, -0.5, 0.0).into(), clr: (0.0, 1.0, 0.0, 1.0).into() }, // bottom left
-       Vertex { pos: (0.0, 0.5, 0.0).into(), clr: (0.0, 0.0, 1.0, 1.0).into() } // top
-    ];
-
-    let mut vbo: gl::types::GLuint = 0;
-    unsafe {
-        gl::GenBuffers(1, &mut vbo);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(
-            gl::ARRAY_BUFFER, // target
-            (vertices.len() * std::mem::size_of::<Vertex>()) as gl::types::GLsizeiptr, // size of data in bytes
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-            gl::STATIC_DRAW, //usage
-        );
-
-        gl::BindBuffer(gl::ARRAY_BUFFER, 0); //unbind the buffer
-    }
-
-    let mut vao: gl::types::GLuint = 0;
-
-    unsafe {
-        gl::GenVertexArrays(1, &mut vao);
-        gl::BindVertexArray(vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-
-        Vertex::vertex_attrib_pointers();
-
-        gl::BindBuffer(gl::ARRAY_BUFFER, 0); // unbind buffer
-        gl::BindVertexArray(0);
-    }
+    let triangle = triangle::Triangle::new(&res)?;
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -124,14 +74,7 @@ fn run() -> Result<(), failure::Error> {
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
 
-        unsafe {
-            gl::BindVertexArray(vao);
-            gl::DrawArrays(
-                gl::TRIANGLES,
-                0,
-                3,
-            );
-        }
+        triangle.render();
 
         window.gl_swap_window();
     }
@@ -139,27 +82,3 @@ fn run() -> Result<(), failure::Error> {
     Ok(())
 }
 
-pub fn failure_to_string(e: failure::Error) -> String {
-    use std::fmt::Write;
-
-    let mut result = String::new();
-
-    for (i, cause) in e.iter_chain().collect::<Vec<_>>().into_iter().rev().enumerate() {
-        if i > 0 {
-            let _ = writeln!(&mut result, " Which caused the following issue:");
-        }
-        let _ = writeln!(&mut result, "{}", cause);
-        if let Some(backtrace) = cause.backtrace() {
-            let backtrace_str = format!("{}", backtrace);
-            if backtrace_str.len() > 0 {
-                let _ = writeln!(&mut result, " This happened at {}", backtrace);
-            } else {
-                let _ = writeln!(&mut result);
-            }
-        } else {
-            let _ = writeln!(&mut result);
-        }
-    }
-
-    result
-}
