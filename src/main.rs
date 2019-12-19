@@ -54,17 +54,27 @@ fn run() -> Result<(), failure::Error> {
     let _gl_context = window.gl_create_context().unwrap();
     let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
     let mut event_pump = sdl.event_pump().unwrap();
+    let mut viewport = helpers::Viewport::for_window(WIDTH as i32, HEIGHT as i32);
 
     unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
 
+    viewport.set_used();
+
     'main: loop {
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
-                _ => {}
+                sdl2::event::Event::Window {
+                    win_event: sdl2::event::WindowEvent::Resized(w, h),
+                    ..
+                } => {
+                    viewport.update_size(w, h);
+                    viewport.set_used();
+                },
+                _ => {},
             }
         }
 
