@@ -1,7 +1,9 @@
 #[macro_use] extern crate failure;
+#[macro_use] extern crate gl_vertex_derive;
 
 extern crate sdl2;
 extern crate gl;
+extern crate vec_2_10_10_10;
 
 use std::ffi::CString;
 use std::path::Path;
@@ -23,30 +25,14 @@ fn main() {
     }
 }
 
+#[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
 struct Vertex {
+    #[location = 0]
     pos: data::f32_f32_f32,
-    clr: data::f32_f32_f32,
-}
-
-impl Vertex {
-    fn vertex_attrib_pointers() {
-        let stride = std::mem::size_of::<Self>();
-        let location = 0;
-        let offset = 0;
-
-        unsafe {
-            data::f32_f32_f32::vertex_attrib_pointer(stride, location, offset);
-        }
-
-        let location = 1;
-        let offset = offset + std::mem::size_of::<data::f32_f32_f32>();
-
-        unsafe {
-            data::f32_f32_f32::vertex_attrib_pointer(stride, location, offset);
-        }
-    }
+    #[location = 1]
+    clr: data::u2_u10_u10_u10_rev_float,
 }
 
 fn run() -> Result<(), failure::Error> {
@@ -92,9 +78,9 @@ fn run() -> Result<(), failure::Error> {
 
     let vertices: Vec<Vertex> = vec![
         // positions        // colors
-       Vertex { pos: (-0.5, -0.5, 0.0).into(), clr: (1.0, 0.0, 0.0).into() }, // bottom right
-       Vertex { pos: (0.5, -0.5, 0.0).into(), clr: (0.0, 1.0, 0.0).into() }, // bottom left
-       Vertex { pos: (0.0, 0.5, 0.0).into(), clr: (0.0, 0.0, 1.0).into() } // top
+       Vertex { pos: (-0.5, -0.5, 0.0).into(), clr: (1.0, 0.0, 0.0, 1.0).into() }, // bottom right
+       Vertex { pos: (0.5, -0.5, 0.0).into(), clr: (0.0, 1.0, 0.0, 1.0).into() }, // bottom left
+       Vertex { pos: (0.0, 0.5, 0.0).into(), clr: (0.0, 0.0, 1.0, 1.0).into() } // top
     ];
 
     let mut vbo: gl::types::GLuint = 0;

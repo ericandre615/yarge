@@ -10,7 +10,9 @@ edition = "2018"
 #sdl2 = { version = "0.32.2", features = ["bundled", "static-link"] }
 sdl2 = "0.32.2"
 gl = "0.14.0"
+vec-2-10-10-10 = "0.1.2"
 failure = "0.1"
+gl_vertex_derive = { path = "gl_vertex_derive" }
 
 [build-dependencies]
 walkdir = "2.1"
