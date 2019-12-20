@@ -24,14 +24,26 @@ pub enum Error {
     CompileError { name: String, message: String },
     #[fail(display = "Failed to link program {}: {}", name, message)]
     LinkError { name: String, message: String },
+    #[fail(
+        display="Failed to find uniform {} in [{}]:{}",
+        uniform_name,
+        program_id,
+        program_name,
+    )]
+    UniformLocationNotFound {
+        uniform_name: String,
+        program_id: gl::types::GLuint,
+        program_name: String,
+    },
 }
 
 pub struct Program {
     id: gl::types::GLuint,
+    name: String,
 }
 
 impl Program {
-    pub fn from_shaders(shaders: &[Shader]) -> Result<Program, String> {
+    pub fn from_shaders(shaders: &[Shader], name: &str) -> Result<Program, String> {
         let program_id = unsafe { gl::CreateProgram() };
         let mut success: gl::types::GLint = 1;
 
@@ -71,7 +83,7 @@ impl Program {
             }
         }
 
-        Ok(Program { id: program_id })
+        Ok(Program { id: program_id, name: name.into() })
     }
 
     pub fn from_resource(res: &Resources, name: &str) -> Result<Program, Error> {
@@ -86,10 +98,34 @@ impl Program {
             })
             .collect::<Result<Vec<Shader>, Error>>()?;
 
-        Program::from_shaders(&shaders[..]).map_err(|message| Error::LinkError {
+        Program::from_shaders(&shaders[..], name).map_err(|message| Error::LinkError {
             name: name.into(),
             message
         })
+    }
+
+    pub fn get_uniform_location(&self, name: &str) -> Result<i32, Error> {
+        let cname = CString::new(name).expect("expected uniform name to have no nul bytes");
+
+        let location = unsafe {
+            gl::GetUniformLocation(self.id, cname.as_bytes_with_nul().as_ptr() as *const i8)
+        };
+
+        if location == -1 {
+            return Err(Error::UniformLocationNotFound {
+                program_id: self.id.clone(),
+                program_name: self.name.clone(),
+                uniform_name: name.into(),
+            });
+        }
+
+        Ok(location)
+    }
+
+    pub fn set_uniform_2f(&self, location: i32, value: &nalgebra::Vector2<f32>) {
+        unsafe {
+            gl::Uniform2f(location, value.x, value.y);
+        }
     }
 
     pub fn set_used(&self) {
@@ -183,7 +219,6 @@ pub fn shader_from_source(
     }
 
     if success == 0 {
-        // cont
         let mut len: gl::types::GLint = 0;
 
         unsafe {

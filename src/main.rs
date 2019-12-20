@@ -3,6 +3,7 @@
 
 extern crate sdl2;
 extern crate gl;
+extern crate nalgebra;
 extern crate vec_2_10_10_10;
 
 use std::path::Path;
@@ -10,6 +11,7 @@ use std::path::Path;
 pub mod helpers;
 pub mod resources;
 mod triangle;
+mod image;
 mod debug;
 
 use helpers::data;
@@ -60,6 +62,14 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
+    let image = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (100.0, 100.0),
+            dim: (200, 200),
+            img_path: "images/mario-sprite.png".to_string(),
+        }
+    )?;
 
     viewport.set_used();
 
@@ -85,6 +95,7 @@ fn run() -> Result<(), failure::Error> {
         }
 
         triangle.render();
+        image.render(&viewport);
 
         window.gl_swap_window();
     }
