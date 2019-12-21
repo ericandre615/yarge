@@ -129,3 +129,87 @@ impl From<i8> for i8_float {
         i8_float::new(other)
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct TexCoords {
+    pub d0: f32,
+    pub d1: f32,
+    pub d2: f32,
+    pub d3: f32,
+    pub d4: f32,
+    pub d5: f32,
+    pub d6: f32,
+    pub d7: f32,
+    pub d8: f32,
+    pub d9: f32,
+    pub d10: f32,
+    pub d11: f32,
+}
+
+impl TexCoords {
+    pub fn new(coords: Vec<f32>) -> TexCoords {
+        TexCoords {
+            d0: coords[0], d1: coords[1],
+            d2: coords[2], d3: coords[3],
+            d4: coords[4], d5: coords[5],
+            d6: coords[6], d7: coords[7],
+            d8: coords[8], d9: coords[9],
+            d10: coords[10], d11: coords[11],
+        }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            2,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint, // (6 * std::mem::size_of::<f32>()) as gl::types::GLint,
+            offset as *const gl::types::GLvoid, // (3 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<Vec<f32>> for TexCoords {
+    fn from(other: Vec<f32>) -> Self {
+        TexCoords::new(other)
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct f32_f32 {
+    pub d0: f32,
+    pub d1: f32,
+}
+
+impl f32_f32 {
+    pub fn new(d0: f32, d1: f32) -> f32_f32 {
+        f32_f32 {
+            d0, d1
+        }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            2,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint, // (6 * std::mem::size_of::<f32>()) as gl::types::GLint,
+            offset as *const gl::types::GLvoid, // (3 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<(f32, f32)> for f32_f32 {
+    fn from(other: (f32, f32)) -> Self {
+        f32_f32::new(other.0, other.1)
+    }
+}
+
+
