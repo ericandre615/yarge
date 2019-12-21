@@ -1,3 +1,7 @@
+use image::{ImageResult, DynamicImage};
+
+use std::ffi::{CString};
+
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
 
@@ -24,39 +28,33 @@ pub struct Image {
     _vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
     uniform_viewport_resolution_location: i32,
+    attrib_texcoord_location: i32,
     image: ImageProps,
+    image_data: ImageResult<DynamicImage>,
 }
 
 impl Image {
     pub fn new(res: &Resources, image: ImageProps) -> Result<Image, failure::Error> {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let uniform_viewport_resolution_location = program.get_uniform_location("ViewportResolution")?;
+        let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
+        let image_data = res.load_image_from_path(&image.img_path);
         let (x, y) = image.pos;
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
         let vertices: Vec<Vertex> = vec![
-            // positions        // colors
-           Vertex { pos: (x, y, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // bottom right
-           Vertex { pos: (x2, y, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // bottom left
-           Vertex { pos: (x, y2, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // top
+           Vertex { pos: (x, y, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
+           Vertex { pos: (x2, y, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
+           Vertex { pos: (x, y2, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
            // second triangle
            Vertex { pos: (x, y2, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
            Vertex { pos: (x2, y, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
            Vertex { pos: (x2, y2, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }
         ]; // 2 triangles makes a rectangle
-        //let vertices: Vec<Vertex> = vec![
-        //    // positions        // colors
-        //   Vertex { pos: (10.0, 20.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // bottom right
-        //   Vertex { pos: (80.0, 20.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // bottom left
-        //   Vertex { pos: (10.0, 30.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }, // top
-        //   // second triangle
-        //   Vertex { pos: (10.0, 30.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
-        //   Vertex { pos: (80.0, 20.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() },
-        //   Vertex { pos: (80.0, 30.0, 0.0).into(), clr: IMAGE_BASE_COLOR.into() }
-        //]; // 2 triangles makes a rectangle
 
         let vbo = buffer::ArrayBuffer::new();
+        // let tex_buffer = buffer::ArrayBuffer::new();
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
@@ -78,6 +76,8 @@ impl Image {
             vao,
             image,
             uniform_viewport_resolution_location,
+            attrib_texcoord_location,
+            image_data,
         })
     }
 

@@ -1,3 +1,5 @@
+use image::{ImageResult, DynamicImage, ImageError};
+
 use std::path::{Path, PathBuf};
 use std::fs;
 use std::io::{self, Read};
@@ -11,6 +13,8 @@ pub enum Error {
     FileContainsNil,
     #[fail(display = "Failed to get executable path")]
     FailedToGetExePath,
+    #[fail(display = "Failed ot load image")]
+    FailedToLoadImage,
 }
 
 impl From<io::Error> for Error {
@@ -52,6 +56,13 @@ impl Resources {
         Ok(unsafe {
             ffi::CString::from_vec_unchecked(buffer)
         })
+    }
+
+    pub fn load_image_from_path(&self, path: &str) -> ImageResult<DynamicImage> {
+        let file_path = resource_name_to_path(&self.root_path, path);
+        let image = image::open(file_path); // .ok().expect(Error::FailedToLoadImage);
+
+        image
     }
 }
 

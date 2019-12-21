@@ -35,6 +35,17 @@ pub enum Error {
         program_id: gl::types::GLuint,
         program_name: String,
     },
+    #[fail(
+        display="Failed to find attribute {} in [{}]: {}",
+        attrib_name,
+        program_id,
+        program_name,
+    )]
+    AttribLocationNotFound {
+        attrib_name: String,
+        program_id: gl::types::GLuint,
+        program_name: String,
+    },
 }
 
 pub struct Program {
@@ -116,6 +127,23 @@ impl Program {
                 program_id: self.id.clone(),
                 program_name: self.name.clone(),
                 uniform_name: name.into(),
+            });
+        }
+
+        Ok(location)
+    }
+
+    pub fn get_attrib_location(&self, name: &str) -> Result<i32, Error> {
+        let cname = CString::new(name).expect("expected attribute name to have nul bytes");
+        let location = unsafe {
+            gl::GetAttribLocation(self.id, cname.as_bytes_with_nul().as_ptr() as *const i8)
+        };
+
+        if location == -1 {
+            return Err(Error::AttribLocationNotFound {
+                program_id: self.id.clone(),
+                program_name: self.name.clone(),
+                attrib_name: name.into(),
             });
         }
 
