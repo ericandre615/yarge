@@ -20,22 +20,10 @@ use resources::Resources;
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
 
-// http://nercury.github.io/rust/opengl/tutorial/2018/02/15/opengl-in-rust-from-scratch-08-failure.html
-
 fn main() {
     if let Err(e) = run() {
         println!("{}", debug::failure_to_string(e));
     }
-}
-
-#[derive(VertexAttribPointers)]
-#[derive(Copy, Clone, Debug)]
-#[repr(C, packed)]
-struct Vertex {
-    #[location = 0]
-    pos: data::f32_f32_f32,
-    #[location = 1]
-    clr: data::u2_u10_u10_u10_rev_float,
 }
 
 fn run() -> Result<(), failure::Error> {
@@ -65,7 +53,7 @@ fn run() -> Result<(), failure::Error> {
     let image = image::Image::new(
         &res,
         image::ImageProps {
-            pos: (100.0, 100.0),
+            pos: (180.0, 200.0),
             dim: (200, 200),
             img_path: "images/mario-sprite.png".to_string(),
         }
