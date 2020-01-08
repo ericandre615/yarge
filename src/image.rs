@@ -30,12 +30,11 @@ pub struct Image {
     attrib_texcoord_location: i32,
     image: ImageProps,
     image_data: DynamicImage,
-    id: u32,
     texture_handle: gl::types::GLuint,
 }
 
 impl Image {
-    pub fn new(res: &Resources, image: ImageProps, id: u32) -> Result<Image, failure::Error> {
+    pub fn new(res: &Resources, image: ImageProps) -> Result<Image, failure::Error> {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let uniform_viewport_resolution_location = program.get_uniform_location("ViewportResolution")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
@@ -55,7 +54,7 @@ impl Image {
            Vertex { pos: (x2, y, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (1.0, 0.0).into() },
            Vertex { pos: (x2, y2, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (1.0, 1.0).into() }
         ]; // 2 triangles makes a rectangle
-        let mut texture_handle: gl::types::GLuint = id;
+        let mut texture_handle: gl::types::GLuint = 0;
 
         let vbo = buffer::ArrayBuffer::new();
 
@@ -67,25 +66,6 @@ impl Image {
 
         vao.bind();
         vbo.bind();
-
-       // let mut ebo: gl::types::GLuint = 0;
-       // let elements = vec![
-       //     0, 1, 2,
-       //     2, 3, 0
-       // ];
-       // unsafe {
-       //     gl::GenBuffers(1, &mut ebo);
-       //     gl::BindBuffer(
-       //         gl::ELEMENT_ARRAY_BUFFER,
-       //         ebo
-       //     );
-       //     gl::BufferData(
-       //         gl::ELEMENT_ARRAY_BUFFER,
-       //         (elements.len() * ::std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-       //         elements.as_ptr() as *const gl::types::GLvoid,
-       //         gl::STATIC_DRAW
-       //     );
-       // }
 
         Vertex::vertex_attrib_pointers();
 
@@ -102,7 +82,6 @@ impl Image {
             uniform_viewport_resolution_location,
             attrib_texcoord_location,
             image_data,
-            id,
             texture_handle: _tex,
         })
     }
@@ -110,6 +89,7 @@ impl Image {
     pub fn render(&self, viewport: &helpers::Viewport) {
         let viewport_dimensions = nalgebra::Vector2::new(viewport.w as f32, viewport.h as f32);
 
+        // call BindTexture again for render to draw the right image for each image/object
         unsafe { gl::BindTexture(gl::TEXTURE_2D, self.texture_handle); }
 
         self.program.set_used();
@@ -127,7 +107,6 @@ impl Image {
 }
 
 fn create_texture(image: &ImageProps, width: u32, height: u32, image_raw: &Vec<u8>, mut texture_handle: gl::types::GLuint) -> gl::types::GLuint {
-    //let mut texture_handle: gl::types::GLuint = id;
     let image_ptr = image_raw.as_ptr() as *const gl::types::GLvoid;
 
     unsafe {

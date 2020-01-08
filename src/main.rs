@@ -57,8 +57,15 @@ fn run() -> Result<(), failure::Error> {
             pos: (20.0, 20.0),
             dim: (100, 100),
             img_path: "images/penguin.png".to_string(),
-        },
-        2
+        }
+    )?;
+    let image3 = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (260.0, 40.0),
+            dim: (200, 200),
+            img_path: "images/ninja-gaiden.gif".to_string(),
+        }
     )?;
     let image = image::Image::new(
         &res,
@@ -66,8 +73,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (180.0, 200.0),
             dim: (200, 200),
             img_path: "images/mario-sprite.png".to_string(),
-        },
-        1
+        }
     )?;
 
     viewport.set_used();
@@ -94,8 +100,9 @@ fn run() -> Result<(), failure::Error> {
         }
 
         triangle.render();
-        image2.render(&viewport);
         image.render(&viewport);
+        image2.render(&viewport);
+        image3.render(&viewport);
 
         window.gl_swap_window();
     }
