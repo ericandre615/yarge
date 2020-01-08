@@ -46,14 +46,14 @@ impl Image {
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
         let vertices: Vec<Vertex> = vec![
-           Vertex { pos: (x, y, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (0.0, 0.0).into() },
-           Vertex { pos: (x2, y, 0.0).into(),/* clr: IMAGE_BASE_COLOR.into(),*/ tex: (1.0, 0.0).into() },
-           Vertex { pos: (x, y2, 0.0).into(),/* clr: IMAGE_BASE_COLOR.into(),*/ tex: (0.0, 1.0).into() },
+           Vertex { pos: (x, y, 0.0).into(), tex: (0.0, 0.0).into() },
+           Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
+           Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
            // second triangle
-           Vertex { pos: (x, y2, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (0.0, 1.0).into() },
-           Vertex { pos: (x2, y, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (1.0, 0.0).into() },
-           Vertex { pos: (x2, y2, 0.0).into(), /*clr: IMAGE_BASE_COLOR.into(),*/ tex: (1.0, 1.0).into() }
-        ]; // 2 triangles makes a rectangle
+           Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
+           Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
+           Vertex { pos: (x2, y2, 0.0).into(), tex: (1.0, 1.0).into() }
+        ];
         let mut texture_handle: gl::types::GLuint = 0;
 
         let vbo = buffer::ArrayBuffer::new();
