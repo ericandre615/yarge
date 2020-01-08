@@ -50,13 +50,24 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
+
+    let image2 = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (20.0, 20.0),
+            dim: (100, 100),
+            img_path: "images/penguin.png".to_string(),
+        },
+        2
+    )?;
     let image = image::Image::new(
         &res,
         image::ImageProps {
             pos: (180.0, 200.0),
             dim: (200, 200),
             img_path: "images/mario-sprite.png".to_string(),
-        }
+        },
+        1
     )?;
 
     viewport.set_used();
@@ -83,6 +94,7 @@ fn run() -> Result<(), failure::Error> {
         }
 
         triangle.render();
+        image2.render(&viewport);
         image.render(&viewport);
 
         window.gl_swap_window();
