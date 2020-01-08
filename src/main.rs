@@ -50,6 +50,23 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
+
+    let image2 = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (20.0, 20.0),
+            dim: (100, 100),
+            img_path: "images/penguin.png".to_string(),
+        }
+    )?;
+    let image3 = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (260.0, 40.0),
+            dim: (200, 200),
+            img_path: "images/ninja-gaiden.gif".to_string(),
+        }
+    )?;
     let image = image::Image::new(
         &res,
         image::ImageProps {
@@ -84,6 +101,8 @@ fn run() -> Result<(), failure::Error> {
 
         triangle.render();
         image.render(&viewport);
+        image2.render(&viewport);
+        image3.render(&viewport);
 
         window.gl_swap_window();
     }
