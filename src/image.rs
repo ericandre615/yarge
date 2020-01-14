@@ -51,8 +51,6 @@ impl Image {
            Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
            Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
            // second triangle
-           //Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
-           //Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
            Vertex { pos: (x2, y2, 0.0).into(), tex: (1.0, 1.0).into() }
         ];
         let indicies = vec![
@@ -115,7 +113,7 @@ impl Image {
                 gl::TRIANGLES,
                 6,// # of vertices to draw
                 gl::UNSIGNED_INT,
-                self.indicies.as_ptr() as *const gl::types::GLvoid //std::ptr::null() // pointer to indicies data, already bound so can give null pointer
+                self.indicies.as_ptr() as *const gl::types::GLvoid
             );
         }
     }
