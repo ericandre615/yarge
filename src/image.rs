@@ -30,6 +30,7 @@ pub struct Image {
     attrib_texcoord_location: i32,
     image: ImageProps,
     image_data: DynamicImage,
+    indicies: Vec<u32>,
     texture_handle: gl::types::GLuint,
 }
 
@@ -50,13 +51,17 @@ impl Image {
            Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
            Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
            // second triangle
-           Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, 1.0).into() },
-           Vertex { pos: (x2, y, 0.0).into(), tex: (1.0, 0.0).into() },
            Vertex { pos: (x2, y2, 0.0).into(), tex: (1.0, 1.0).into() }
         ];
+        let indicies = vec![
+            0, 1, 2,
+            2, 1, 3,
+        ];
+
         let mut texture_handle: gl::types::GLuint = 0;
 
         let vbo = buffer::ArrayBuffer::new();
+        let ibo = buffer::ElementArrayBuffer::new();
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
@@ -69,9 +74,15 @@ impl Image {
 
         Vertex::vertex_attrib_pointers();
 
+        ibo.bind();
+        ibo.static_draw_data(&indicies);
+        ibo.unbind();
+
+
         let _tex = create_texture(&image, iw, ih, &image_rgba.to_vec(), texture_handle);//.raw_pixels());
 
         vbo.unbind();
+        ibo.unbind();
         vao.unbind();
 
         Ok(Image {
@@ -82,6 +93,7 @@ impl Image {
             uniform_viewport_resolution_location,
             attrib_texcoord_location,
             image_data,
+            indicies,
             texture_handle: _tex,
         })
     }
@@ -97,10 +109,11 @@ impl Image {
         self.vao.bind();
 
         unsafe {
-            gl::DrawArrays(
+            gl::DrawElements(
                 gl::TRIANGLES,
-                0,
-                6 // 3 per triangle
+                6,// # of vertices to draw
+                gl::UNSIGNED_INT,
+                self.indicies.as_ptr() as *const gl::types::GLvoid
             );
         }
     }
