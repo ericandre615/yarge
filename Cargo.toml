@@ -10,7 +10,7 @@ edition = "2018"
 #sdl2 = { version = "0.32.2", features = ["bundled", "static-link"] }
 sdl2 = "0.32.2"
 gl = "0.14.0"
-nalgebra = "0.16"
+nalgebra-glm = "0.3"
 vec-2-10-10-10 = "0.1.2"
 image = "0.22"
 failure = "0.1"
