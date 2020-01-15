@@ -95,6 +95,20 @@ fn run() -> Result<(), failure::Error> {
 
                     camera.update_viewport(viewport.w, viewport.h);
                 },
+                sdl2::event::Event::KeyDown { keycode, .. } => {
+                    println!("KeyDown: {:?}", keycode);
+                    match keycode {
+                        Some(sdl2::keyboard::Keycode::Right) => {
+                            let pos = camera.get_position();
+                            camera.set_posX(pos.x + 10.0);
+                        },
+                        Some(sdl2::keyboard::Keycode::Left) => {
+                            let pos = camera.get_position();
+                            camera.set_posX(pos.x - 10.0);
+                        },
+                        _ => break,
+                    }
+                },
                 _ => {},
             }
         }

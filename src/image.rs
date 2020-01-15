@@ -88,7 +88,7 @@ impl Image {
 
     pub fn render(&self, camera: &Camera) {
         let uniform_mvp = self.program.get_uniform_location("MVP").unwrap();
-        let mvp = camera.get_projection();
+        let mvp = camera.get_projection() * camera.get_view();
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 
