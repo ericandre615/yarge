@@ -150,9 +150,20 @@ impl Program {
         Ok(location)
     }
 
-    pub fn set_uniform_2f(&self, location: i32, value: &nalgebra::Vector2<f32>) {
+    pub fn set_uniform_2f(&self, location: i32, value: &glm::Vec2) {
         unsafe {
             gl::Uniform2f(location, value.x, value.y);
+        }
+    }
+
+    pub fn set_uniform_mat4f(&self, location: i32, value: &glm::TMat4<f32>) {
+        unsafe {
+            gl::UniformMatrix4fv(
+                location,
+                1, // # of matrices
+                gl::FALSE, // transpose? column major (set true if matrix is row major)
+                value.as_ptr() as *const f32
+            );
         }
     }
 

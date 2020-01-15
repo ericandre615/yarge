@@ -4,6 +4,7 @@ use std::ffi::{CString, c_void};
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
 use crate::texture::{Texture};
+use crate::camera::{Camera};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -25,7 +26,6 @@ pub struct Image {
     program: helpers::Program,
     _vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
-    uniform_viewport_resolution_location: i32,
     attrib_texcoord_location: i32,
     image: ImageProps,
     indicies: Vec<u32>,
@@ -35,7 +35,6 @@ pub struct Image {
 impl Image {
     pub fn new(res: &Resources, image: ImageProps) -> Result<Image, failure::Error> {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
-        let uniform_viewport_resolution_location = program.get_uniform_location("ViewportResolution")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
         let (x, y) = image.pos;
@@ -81,21 +80,20 @@ impl Image {
             _vbo: vbo,
             vao,
             image,
-            uniform_viewport_resolution_location,
             attrib_texcoord_location,
             indicies,
             texture,
         })
     }
 
-    pub fn render(&self, viewport: &helpers::Viewport) {
-        let viewport_dimensions = nalgebra::Vector2::new(viewport.w as f32, viewport.h as f32);
-
+    pub fn render(&self, camera: &Camera) {
+        let uniform_mvp = self.program.get_uniform_location("MVP").unwrap();
+        let mvp = camera.get_projection();
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 
         self.program.set_used();
-        self.program.set_uniform_2f(self.uniform_viewport_resolution_location, &viewport_dimensions);
+        self.program.set_uniform_mat4f(uniform_mvp, &mvp);
         self.vao.bind();
 
         unsafe {

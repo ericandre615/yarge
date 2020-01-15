@@ -3,7 +3,7 @@
 
 extern crate sdl2;
 extern crate gl;
-extern crate nalgebra;
+extern crate nalgebra_glm as glm;
 extern crate vec_2_10_10_10;
 
 use std::path::Path;
@@ -13,10 +13,12 @@ pub mod resources;
 pub mod texture;
 mod triangle;
 mod image;
+mod camera;
 mod debug;
 
 use helpers::data;
 use resources::Resources;
+use camera::*;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -45,12 +47,13 @@ fn run() -> Result<(), failure::Error> {
     let _gl_context = window.gl_create_context().unwrap();
     let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
     let mut event_pump = sdl.event_pump().unwrap();
-    let mut viewport = helpers::Viewport::for_window(WIDTH as i32, HEIGHT as i32);
+    let mut viewport = helpers::Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
+    let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
     let image2 = image::Image::new(
         &res,
@@ -87,8 +90,10 @@ fn run() -> Result<(), failure::Error> {
                     win_event: sdl2::event::WindowEvent::Resized(w, h),
                     ..
                 } => {
-                    viewport.update_size(w, h);
+                    viewport.update_size(w as f32, h as f32);
                     viewport.set_used();
+
+                    camera.update_viewport(viewport.w, viewport.h);
                 },
                 _ => {},
             }
@@ -96,14 +101,14 @@ fn run() -> Result<(), failure::Error> {
 
         // render window contents here
         unsafe {
-            gl::Viewport(0, 0, WIDTH as i32, HEIGHT as i32);
+            viewport.set_used();
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
 
         triangle.render();
-        image.render(&viewport);
-        image2.render(&viewport);
-        image3.render(&viewport);
+        image.render(&camera);
+        image2.render(&camera);
+        image3.render(&camera);
 
         window.gl_swap_window();
     }
