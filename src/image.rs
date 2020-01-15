@@ -3,8 +3,7 @@ use std::ffi::{CString, c_void};
 
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
-
-const IMAGE_BASE_COLOR: (f32, f32, f32, f32) = (1.0, 0.0, 0.5, 0.0);
+use crate::texture::{Texture};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -29,9 +28,8 @@ pub struct Image {
     uniform_viewport_resolution_location: i32,
     attrib_texcoord_location: i32,
     image: ImageProps,
-    image_data: DynamicImage,
     indicies: Vec<u32>,
-    texture_handle: gl::types::GLuint,
+    texture: Texture,
 }
 
 impl Image {
@@ -39,9 +37,7 @@ impl Image {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let uniform_viewport_resolution_location = program.get_uniform_location("ViewportResolution")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
-        let image_data = res.load_image_from_path(&image.img_path)?;
-        let image_rgba = image_data.to_rgba();
-        let (iw, ih) = image_data.dimensions();
+        let texture = Texture::new(res, image.img_path.to_string())?;
         let (x, y) = image.pos;
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
@@ -57,8 +53,6 @@ impl Image {
             0, 1, 2,
             2, 1, 3,
         ];
-
-        let mut texture_handle: gl::types::GLuint = 0;
 
         let vbo = buffer::ArrayBuffer::new();
         let ibo = buffer::ElementArrayBuffer::new();
@@ -78,9 +72,6 @@ impl Image {
         ibo.static_draw_data(&indicies);
         ibo.unbind();
 
-
-        let _tex = create_texture(&image, iw, ih, &image_rgba.to_vec(), texture_handle);//.raw_pixels());
-
         vbo.unbind();
         ibo.unbind();
         vao.unbind();
@@ -92,9 +83,8 @@ impl Image {
             image,
             uniform_viewport_resolution_location,
             attrib_texcoord_location,
-            image_data,
             indicies,
-            texture_handle: _tex,
+            texture,
         })
     }
 
@@ -102,7 +92,7 @@ impl Image {
         let viewport_dimensions = nalgebra::Vector2::new(viewport.w as f32, viewport.h as f32);
 
         // call BindTexture again for render to draw the right image for each image/object
-        unsafe { gl::BindTexture(gl::TEXTURE_2D, self.texture_handle); }
+        self.texture.bind();
 
         self.program.set_used();
         self.program.set_uniform_2f(self.uniform_viewport_resolution_location, &viewport_dimensions);
@@ -119,35 +109,3 @@ impl Image {
     }
 }
 
-fn create_texture(image: &ImageProps, width: u32, height: u32, image_raw: &Vec<u8>, mut texture_handle: gl::types::GLuint) -> gl::types::GLuint {
-    let image_ptr = image_raw.as_ptr() as *const gl::types::GLvoid;
-
-    unsafe {
-        gl::Enable(gl::BLEND);
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-
-        gl::GenTextures(1, &mut texture_handle);
-        gl::BindTexture(gl::TEXTURE_2D, texture_handle);
-
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-
-        gl::TexImage2D(
-            gl::TEXTURE_2D,
-            0,
-            gl::RGBA as i32,
-            width as i32,
-            height as i32,
-            0,
-            gl::RGBA,
-            gl::UNSIGNED_BYTE,
-            image_ptr
-        );
-
-        gl::GenerateMipmap(gl::TEXTURE_2D);
-
-        texture_handle
-    }
-}
