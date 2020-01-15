@@ -10,6 +10,7 @@ use std::path::Path;
 
 pub mod helpers;
 pub mod resources;
+pub mod texture;
 mod triangle;
 mod image;
 mod debug;
