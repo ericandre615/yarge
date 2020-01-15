@@ -32,11 +32,17 @@ impl Texture {
             gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
         }
     }
+
+    pub fn unbind() {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+    }
 }
 
 fn create_texture(width: u32, height: u32, image_raw: &Vec<u8>) -> gl::types::GLuint {
     let image_ptr = image_raw.as_ptr() as *const gl::types::GLvoid;
-    let mut texture_handle: gl::types::GLuint = 0;
+    let mut texture_handle: gl::types::GLuint = 1;
 
     unsafe {
         gl::Enable(gl::BLEND);
@@ -64,6 +70,17 @@ fn create_texture(width: u32, height: u32, image_raw: &Vec<u8>) -> gl::types::GL
 
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
+        gl::BindTexture(gl::TEXTURE_2D, 0);
+
         texture_handle
     }
 }
+
+impl Drop for Texture {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteTextures(1, &mut self.texture_handle);
+        }
+    }
+}
+
