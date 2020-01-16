@@ -37,7 +37,7 @@ impl Image {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
-        let (x, y) = image.pos;
+        let (x, y) = (0.0, 0.0);
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
@@ -86,9 +86,30 @@ impl Image {
         })
     }
 
+    pub fn get_position(&self) -> (f32, f32) {
+        self.image.pos
+    }
+
+    pub fn set_pos(&mut self, x: f32, y: f32) {
+        self.image.pos = (x, y);
+    }
+
+    pub fn set_posX(&mut self, x: f32) {
+        let (_x, y) = self.image.pos;
+        self.image.pos = (x, y);
+    }
+
+    pub fn set_posY(&mut self, y: f32) {
+        let (x, _y) = self.image.pos;
+        self.image.pos = (x, y);
+    }
+
     pub fn render(&self, camera: &Camera) {
         let uniform_mvp = self.program.get_uniform_location("MVP").unwrap();
-        let mvp = camera.get_projection() * camera.get_view();
+        let (x, y) = self.image.pos;
+        let pos = glm::vec3(x, y, 0.0);
+        let model = glm::translate(&glm::identity(), &pos);
+        let mvp = camera.get_projection() * camera.get_view() * model;
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 

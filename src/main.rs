@@ -63,7 +63,7 @@ fn run() -> Result<(), failure::Error> {
             img_path: "images/penguin.png".to_string(),
         }
     )?;
-    let image3 = image::Image::new(
+    let mut image3 = image::Image::new(
         &res,
         image::ImageProps {
             pos: (260.0, 40.0),
@@ -99,12 +99,17 @@ fn run() -> Result<(), failure::Error> {
                     println!("KeyDown: {:?}", keycode);
                     match keycode {
                         Some(sdl2::keyboard::Keycode::Right) => {
-                            let pos = camera.get_position();
-                            camera.set_posX(pos.x + 10.0);
+                            //let pos = camera.get_position();
+                            //camera.set_posX(pos.x + 10.0);
+                            let (x, _y) = image3.get_position();
+                            image3.set_posX(x + 10.0);
+
                         },
                         Some(sdl2::keyboard::Keycode::Left) => {
-                            let pos = camera.get_position();
-                            camera.set_posX(pos.x - 10.0);
+                            //let pos = camera.get_position();
+                            //camera.set_posX(pos.x - 10.0);
+                            let (x, _y) = image3.get_position();
+                            image3.set_posX(x - 10.0);
                         },
                         _ => break,
                     }
