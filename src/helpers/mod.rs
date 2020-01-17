@@ -1,5 +1,6 @@
 pub mod data;
 pub mod buffer;
+pub mod timer;
 mod color_buffer;
 mod shader;
 mod viewport;

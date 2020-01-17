@@ -16,7 +16,8 @@ mod image;
 mod camera;
 mod debug;
 
-use helpers::data;
+use helpers::{data};
+use helpers::timer::{Timer};
 use resources::Resources;
 use camera::*;
 
@@ -87,9 +88,12 @@ fn run() -> Result<(), failure::Error> {
 
     image.set_alpha(0.5);
 
+    let mut timer = Timer::new();
+
     viewport.set_used();
 
     'main: loop {
+        timer.tick();
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
@@ -103,18 +107,13 @@ fn run() -> Result<(), failure::Error> {
                     camera.update_viewport(viewport.w, viewport.h);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
-                    println!("KeyDown: {:?}", keycode);
                     match keycode {
                         Some(sdl2::keyboard::Keycode::Right) => {
-                            //let pos = camera.get_position();
-                            //camera.set_posX(pos.x + 10.0);
                             let (x, _y) = image3.get_position();
                             image3.set_posX(x + 10.0);
 
                         },
                         Some(sdl2::keyboard::Keycode::Left) => {
-                            //let pos = camera.get_position();
-                            //camera.set_posX(pos.x - 10.0);
                             let (x, _y) = image3.get_position();
                             image3.set_posX(x - 10.0);
                         },
@@ -131,10 +130,12 @@ fn run() -> Result<(), failure::Error> {
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
 
+        let delta_time = timer.delta_time();
+
         triangle.render();
-        image.render(&camera);
-        image2.render(&camera);
-        image3.render(&camera);
+        image.render(&camera, delta_time);
+        image2.render(&camera, delta_time);
+        image3.render(&camera, delta_time);
 
         window.gl_swap_window();
     }
