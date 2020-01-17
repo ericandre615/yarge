@@ -27,15 +27,18 @@ pub struct Image {
     _vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
     attrib_texcoord_location: i32,
+    uniform_mvp: i32,
     image: ImageProps,
     indicies: Vec<u32>,
     texture: Texture,
+    model: glm::TMat4<f32>,
 }
 
 impl Image {
     pub fn new(res: &Resources, image: ImageProps) -> Result<Image, failure::Error> {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
+        let uniform_mvp = program.get_uniform_location("MVP")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
         let (x, y) = (0.0, 0.0);
         let (width, height) = image.dim;
@@ -75,14 +78,20 @@ impl Image {
         ibo.unbind();
         vao.unbind();
 
+        let (x, y) = image.pos;
+        let pos = glm::vec3(x, y, 0.0);
+        let model = glm::translate(&glm::identity(), &pos);
+
         Ok(Image {
             program,
             _vbo: vbo,
             vao,
             image,
             attrib_texcoord_location,
+            uniform_mvp,
             indicies,
             texture,
+            model,
         })
     }
 
@@ -91,36 +100,50 @@ impl Image {
     }
 
     pub fn set_pos(&mut self, x: f32, y: f32) {
+        let pos = glm::vec3(x, y, 0.0);
         self.image.pos = (x, y);
+        self.model = glm::translate(&glm::identity(), &pos);
     }
 
     pub fn set_posX(&mut self, x: f32) {
         let (_x, y) = self.image.pos;
+        let pos = glm::vec3(x, y, 0.0);
         self.image.pos = (x, y);
+        self.model = glm::translate(&glm::identity(), &pos);
     }
 
     pub fn set_posY(&mut self, y: f32) {
         let (x, _y) = self.image.pos;
+        let pos = glm::vec3(x, y, 0.0);
         self.image.pos = (x, y);
+        self.model = glm::translate(&glm::identity(), &pos);
+    }
+
+    pub fn flip_h(&mut self) {
+        self.model = glm::scale(&self.model, &glm::vec3(-1.0, 1.0, 1.0));
+    }
+
+    pub fn flip_v(&mut self) {
+        self.model = glm::scale(&self.model, &glm::vec3(1.0, -1.0, 1.0));
+    }
+
+    pub fn get_model(&self) -> glm::TMat4<f32> {
+        self.model
     }
 
     pub fn render(&self, camera: &Camera) {
-        let uniform_mvp = self.program.get_uniform_location("MVP").unwrap();
-        let (x, y) = self.image.pos;
-        let pos = glm::vec3(x, y, 0.0);
-        let model = glm::translate(&glm::identity(), &pos);
-        let mvp = camera.get_projection() * camera.get_view() * model;
+        let mvp = camera.get_projection() * camera.get_view() * self.model;
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 
         self.program.set_used();
-        self.program.set_uniform_mat4f(uniform_mvp, &mvp);
+        self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
         self.vao.bind();
 
         unsafe {
             gl::DrawElements(
                 gl::TRIANGLES,
-                6,// # of vertices to draw
+                6,
                 gl::UNSIGNED_INT,
                 self.indicies.as_ptr() as *const gl::types::GLvoid
             );

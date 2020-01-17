@@ -55,7 +55,7 @@ fn run() -> Result<(), failure::Error> {
     let triangle = triangle::Triangle::new(&res)?;
     let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
-    let image2 = image::Image::new(
+    let mut image2 = image::Image::new(
         &res,
         image::ImageProps {
             pos: (20.0, 20.0),
@@ -79,6 +79,9 @@ fn run() -> Result<(), failure::Error> {
             img_path: "images/mario-sprite.png".to_string(),
         }
     )?;
+
+    image2.flip_v();
+    image3.flip_h();
 
     viewport.set_used();
 
