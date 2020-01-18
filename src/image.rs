@@ -28,9 +28,11 @@ pub struct Image {
     vao: buffer::VertexArray,
     attrib_texcoord_location: i32,
     uniform_mvp: i32,
+    uniform_color: i32,
     image: ImageProps,
     indicies: Vec<u32>,
     texture: Texture,
+    color: (f32, f32, f32, f32),
     model: glm::TMat4<f32>,
 }
 
@@ -39,7 +41,9 @@ impl Image {
         let program = helpers::Program::from_resource(res, "shaders/image")?;
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
+        let uniform_color = program.get_uniform_location("TexColor")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
+        let color = (1.0, 1.0, 1.0, 1.0);
         let (x, y) = (0.0, 0.0);
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
@@ -89,8 +93,10 @@ impl Image {
             image,
             attrib_texcoord_location,
             uniform_mvp,
+            uniform_color,
             indicies,
             texture,
+            color,
             model,
         })
     }
@@ -119,6 +125,15 @@ impl Image {
         self.model = glm::translate(&glm::identity(), &pos);
     }
 
+    pub fn set_color(&mut self, color: (f32, f32, f32, f32)) {
+        self.color = color;
+    }
+
+    pub fn set_alpha(&mut self, alpha: f32) {
+        let (r, g, b, _a) = self.color;
+        self.color = (r, g, b, alpha);
+    }
+
     pub fn flip_h(&mut self) {
         self.model = glm::scale(&self.model, &glm::vec3(-1.0, 1.0, 1.0));
     }
@@ -137,6 +152,7 @@ impl Image {
         self.texture.bind();
 
         self.program.set_used();
+        self.program.set_uniform_4f(self.uniform_color, self.color);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
         self.vao.bind();
 

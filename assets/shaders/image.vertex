@@ -3,7 +3,6 @@
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
 
-// uniform vec2 ViewportResolution;
 uniform mat4 MVP;
 
 out VS_OUTPUT {
@@ -11,13 +10,7 @@ out VS_OUTPUT {
 } OUT;
 
 void main() {
-    //vec2 zeroToOne = Position.xy / ViewportResolution;
-    //vec2 zeroToTwo = zeroToOne * 2.0;
-    //vec2 clipSpace = zeroToTwo - 1.0;
-
     gl_Position = MVP * vec4(Position, 1.0); //vec4(clipSpace * vec2(1, -1), 0, 1.0);
 
-    //gl_Position = vec4(Position, 1.0);
-    //OUT.Color = Color;
     OUT.TexCoord = TexCoord;
 }

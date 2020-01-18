@@ -71,7 +71,7 @@ fn run() -> Result<(), failure::Error> {
             img_path: "images/ninja-gaiden.gif".to_string(),
         }
     )?;
-    let image = image::Image::new(
+    let mut image = image::Image::new(
         &res,
         image::ImageProps {
             pos: (180.0, 200.0),
@@ -82,6 +82,10 @@ fn run() -> Result<(), failure::Error> {
 
     image2.flip_v();
     image3.flip_h();
+
+    image3.set_color((1.0, 0.0, 0.0, 1.0));
+
+    image.set_alpha(0.5);
 
     viewport.set_used();
 
