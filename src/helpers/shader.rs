@@ -156,6 +156,13 @@ impl Program {
         }
     }
 
+    pub fn set_uniform_4f(&self, location: i32, value: (f32, f32, f32, f32)) {
+        let (x, y, z, w) = value;
+        unsafe {
+            gl::Uniform4f(location, x, y, z, w);
+        }
+    }
+
     pub fn set_uniform_mat4f(&self, location: i32, value: &glm::TMat4<f32>) {
         unsafe {
             gl::UniformMatrix4fv(
