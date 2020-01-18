@@ -146,8 +146,9 @@ impl Image {
         self.model
     }
 
-    pub fn render(&self, camera: &Camera) {
+    pub fn render(&self, camera: &Camera, dt: f32) {
         let mvp = camera.get_projection() * camera.get_view() * self.model;
+
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 
