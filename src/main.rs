@@ -80,6 +80,14 @@ fn run() -> Result<(), failure::Error> {
             img_path: "images/mario-sprite.png".to_string(),
         }
     )?;
+    let mut spritesheet = image::Image::new(
+        &res,
+        image::ImageProps {
+            pos: (20.0, 20.0),
+            dim: (200, 100),
+            img_path: "images/ninja-gaiden-spritesheet.png".to_string(),
+        }
+    )?;
 
     image2.flip_v();
     image3.flip_h();
@@ -87,6 +95,8 @@ fn run() -> Result<(), failure::Error> {
     image3.set_color((1.0, 0.0, 0.0, 1.0));
 
     image.set_alpha(0.5);
+
+    spritesheet.set_frame((512, 0));
 
     let mut timer = Timer::new();
 
@@ -136,6 +146,7 @@ fn run() -> Result<(), failure::Error> {
         image.render(&camera, delta_time);
         image2.render(&camera, delta_time);
         image3.render(&camera, delta_time);
+        spritesheet.render(&camera, delta_time);
 
         window.gl_swap_window();
     }

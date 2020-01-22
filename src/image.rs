@@ -16,6 +16,7 @@ struct Vertex {
     tex: data::f32_f32,
 }
 
+#[derive(Clone, Debug)]
 pub struct ImageProps {
     pub pos: (f32, f32),
     pub dim: (u32, u32),
@@ -29,7 +30,9 @@ pub struct Image {
     attrib_texcoord_location: i32,
     uniform_mvp: i32,
     uniform_color: i32,
+    uniform_texcoord_transform: i32,
     image: ImageProps,
+    frame: (u32, u32),
     indicies: Vec<u32>,
     texture: Texture,
     color: (f32, f32, f32, f32),
@@ -42,6 +45,7 @@ impl Image {
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("TexColor")?;
+        let uniform_texcoord_transform = program.get_uniform_location("TexCoordShift")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
         let color = (1.0, 1.0, 1.0, 1.0);
         let (x, y) = (0.0, 0.0);
@@ -94,10 +98,12 @@ impl Image {
             attrib_texcoord_location,
             uniform_mvp,
             uniform_color,
+            uniform_texcoord_transform,
             indicies,
             texture,
             color,
             model,
+            frame: (0, 0),
         })
     }
 
@@ -146,14 +152,26 @@ impl Image {
         self.model
     }
 
+    pub fn set_frame(&mut self, frame: (u32, u32)) {
+        self.frame = frame;
+    }
+
     pub fn render(&self, camera: &Camera, dt: f32) {
         let mvp = camera.get_projection() * camera.get_view() * self.model;
-
+        let (fw, fh) = self.frame;
+        let (iw, ih) = self.texture.get_dimensions();
+        let tx = fw as f32 / iw as f32;
+        let ty = fh as f32 / ih as f32;
+        //print!("RENDER IMAGE dim w {} h {}, img w {} h {}, tx {}, ty {}",
+        //    fw, fh, iw, ih, tx, ty
+        //);
+        let texcoord_transform = glm::vec2(tx as f32, ty as f32); //glm::vec2(0.0, 0.0);
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
 
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);
+        self.program.set_uniform_2f(self.uniform_texcoord_transform, &texcoord_transform);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
         self.vao.bind();
 
