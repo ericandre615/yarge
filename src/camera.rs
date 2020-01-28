@@ -53,15 +53,15 @@ impl Camera {
         self.view = glm::translate(&glm::identity(), &self.pos);
     }
 
-    pub fn set_posX(&mut self, x: f32) {
+    pub fn set_pos_x(&mut self, x: f32) {
         self.set_position(x, self.pos.y, self.pos.z);
     }
 
-    pub fn set_posY(&mut self, y: f32) {
+    pub fn set_pos_y(&mut self, y: f32) {
         self.set_position(self.pos.x, y, self.pos.z);
     }
 
-    pub fn set_posZ(&mut self, z: f32) {
+    pub fn set_pos_z(&mut self, z: f32) {
         self.set_position(self.pos.x, self.pos.y, z);
     }
 

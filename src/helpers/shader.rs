@@ -163,6 +163,17 @@ impl Program {
         }
     }
 
+    pub fn set_uniform_mat3f(&self, location: i32, value: &glm::TMat3<f32>) {
+        unsafe {
+            gl::UniformMatrix3fv(
+                location,
+                1,
+                gl::FALSE,//gl::TRUE,
+                value.as_ptr() as *const f32
+            );
+        }
+    }
+
     pub fn set_uniform_mat4f(&self, location: i32, value: &glm::TMat4<f32>) {
         unsafe {
             gl::UniformMatrix4fv(

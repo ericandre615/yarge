@@ -68,7 +68,7 @@ fn run() -> Result<(), failure::Error> {
         &res,
         image::ImageProps {
             pos: (260.0, 40.0),
-            dim: (200, 200),
+            dim: (256, 256),
             img_path: "images/ninja-gaiden.gif".to_string(),
         }
     )?;
@@ -76,7 +76,7 @@ fn run() -> Result<(), failure::Error> {
         &res,
         image::ImageProps {
             pos: (180.0, 200.0),
-            dim: (200, 200),
+            dim: (200, 200),//(420, 420),
             img_path: "images/mario-sprite.png".to_string(),
         }
     )?;
@@ -84,7 +84,7 @@ fn run() -> Result<(), failure::Error> {
         &res,
         image::ImageProps {
             pos: (20.0, 20.0),
-            dim: (200, 100),
+            dim: (256, 256),
             img_path: "images/ninja-gaiden-spritesheet.png".to_string(),
         }
     )?;
@@ -92,15 +92,24 @@ fn run() -> Result<(), failure::Error> {
     image2.flip_v();
     image3.flip_h();
 
-    image3.set_color((1.0, 0.0, 0.0, 1.0));
+    image3.set_color((255, 0, 0, 1.0));
 
     image.set_alpha(0.5);
 
-    spritesheet.set_frame((512, 0));
+    spritesheet.set_frame((256, 0));
+
+    let sprite_frames = [
+        (0, 0),(0, 0),(0, 0),(0, 0),
+        (256, 0),(256, 0),(256, 0),(256, 0),
+        (512, 0),(512, 0),(512, 0),(512, 0),
+        (256, 0),(256, 0),(256, 0),(256, 0),
+    ];
 
     let mut timer = Timer::new();
 
     viewport.set_used();
+
+    let mut i = 0;
 
     'main: loop {
         timer.tick();
@@ -117,15 +126,19 @@ fn run() -> Result<(), failure::Error> {
                     camera.update_viewport(viewport.w, viewport.h);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
+                    let dt = timer.delta_time();
                     match keycode {
                         Some(sdl2::keyboard::Keycode::Right) => {
                             let (x, _y) = image3.get_position();
-                            image3.set_posX(x + 10.0);
+                            image3.set_orientation(image::Direction::Normal, image::Direction::Normal);
+                            image3.set_pos_x(x + 1.0 * dt);
 
                         },
                         Some(sdl2::keyboard::Keycode::Left) => {
                             let (x, _y) = image3.get_position();
-                            image3.set_posX(x - 10.0);
+                            image3.set_orientation(image::Direction::Flipped, image::Direction::Normal);
+                            image3.set_pos_x(x - 1.0 * dt);
+
                         },
                         _ => break,
                     }
@@ -142,11 +155,23 @@ fn run() -> Result<(), failure::Error> {
 
         let delta_time = timer.delta_time();
 
+        if delta_time as u32 % 2 > 0 {
+            image3.set_color((255, 0, 0, 1.0));
+        } else {
+            image3.set_color((0, 0, 255, 1.0));
+        }
+
         triangle.render();
         image.render(&camera, delta_time);
         image2.render(&camera, delta_time);
-        image3.render(&camera, delta_time);
         spritesheet.render(&camera, delta_time);
+        image3.render(&camera, delta_time);
+
+        spritesheet.set_frame(sprite_frames[i]);
+
+        i += 1;
+
+        if i >= sprite_frames.len() - 1 { i = 0; }
 
         window.gl_swap_window();
     }

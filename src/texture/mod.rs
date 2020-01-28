@@ -1,3 +1,5 @@
+pub mod transform;
+
 use image::{ImageResult, DynamicImage, GenericImageView};
 
 use crate::resources::*;
