@@ -200,6 +200,10 @@ impl Image {
         self.texture_transform.set_frame(fx as f32, fy as f32);
     }
 
+    pub fn set_texture_scale(&mut self, x: f32, y: f32) {
+        self.texture_transform.set_scale(x, y);
+    }
+
     pub fn render(&self, camera: &Camera, dt: f32) {
         let scale_x = match self.orientation.horizontal {
             Direction::Normal => 1.0,
@@ -209,7 +213,8 @@ impl Image {
             Direction::Normal => 1.0,
             Direction::Flipped => -1.0,
         };
-        let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
+        //let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
+        let model = self.model;
         let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
         let texcoord_transform = self.texture_transform.get_transform();
         // call BindTexture again for render to draw the right image for each image/object

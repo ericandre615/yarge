@@ -12,6 +12,7 @@ pub mod helpers;
 pub mod resources;
 pub mod texture;
 mod triangle;
+mod rectangle;
 mod image;
 mod camera;
 mod debug;
@@ -54,6 +55,18 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
+    let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
+        width: 256.0,
+        height: 256.0,
+        pos: (20.0, 20.0),
+        color: (1.0, 0.0, 0.0, 1.0),
+    })?;
+    let rect2 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
+        width: 256.0,
+        height: 256.0,
+        pos: (260.0, 40.0),
+        color: (0.0, 1.0, 0.0, 1.0),
+    })?;
     let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
     let mut image2 = image::Image::new(
@@ -76,7 +89,7 @@ fn run() -> Result<(), failure::Error> {
         &res,
         image::ImageProps {
             pos: (180.0, 200.0),
-            dim: (200, 200),//(420, 420),
+            dim: (400, 400),//(420, 420),
             img_path: "images/mario-sprite.png".to_string(),
         }
     )?;
@@ -95,6 +108,9 @@ fn run() -> Result<(), failure::Error> {
     image3.set_color((255, 0, 0, 1.0));
 
     image.set_alpha(0.5);
+    let scale_ix = 1.5;
+    let scale_iy = 1.5;
+    image.set_texture_scale(scale_ix, scale_iy);
 
     spritesheet.set_frame((256, 0));
 
@@ -110,6 +126,8 @@ fn run() -> Result<(), failure::Error> {
     viewport.set_used();
 
     let mut i = 0;
+
+    let mut is_look_at: bool = true;
 
     'main: loop {
         timer.tick();
@@ -128,6 +146,10 @@ fn run() -> Result<(), failure::Error> {
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
                     match keycode {
+                        Some(sdl2::keyboard::Keycode::L) => {
+//                            camera.cancel_look_at();
+                            is_look_at = false;
+                        },
                         Some(sdl2::keyboard::Keycode::Right) => {
                             let (x, _y) = image3.get_position();
                             image3.set_orientation(image::Direction::Normal, image::Direction::Normal);
@@ -146,7 +168,12 @@ fn run() -> Result<(), failure::Error> {
                 _ => {},
             }
         }
-
+        //if is_look_at {
+        //    let (tx, ty) = image3.get_position();
+        //    camera.look_at((tx, ty, 0.0));
+        //}
+        //let (tx, ty) = image3.get_position();
+        //camera.set_position(tx, ty, 0.0);
         // render window contents here
         unsafe {
             viewport.set_used();
@@ -162,6 +189,8 @@ fn run() -> Result<(), failure::Error> {
         }
 
         triangle.render();
+        rect1.render(&camera);
+        rect2.render(&camera);
         image.render(&camera, delta_time);
         image2.render(&camera, delta_time);
         spritesheet.render(&camera, delta_time);

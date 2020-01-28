@@ -81,5 +81,17 @@ impl Camera {
         self.height = height;
         self.projection = glm::ortho(0.0, width, height, 0.0, -10.0, 100.0);
     }
+
+    pub fn look_at(&mut self, target: (f32, f32, f32)) {
+        let up = glm::vec3(0.0, 1.0, 0.0);
+        let (x, y, z) = target;
+        let look_at_target = glm::vec3(x, y, z);
+
+        self.view = glm::look_at(&self.pos, &look_at_target, &up);
+    }
+
+    pub fn cancel_look_at(&mut self) {
+        self.view = glm::translate(&glm::identity(), &self.pos);
+    }
 }
 

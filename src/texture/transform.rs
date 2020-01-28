@@ -35,7 +35,11 @@ impl TextureTransform {
 
     pub fn get_transform(&self) -> glm::Mat4 {
         // self.ortho * self.scale * self.translate
-        self.translate
+        self.scale * self.translate
+    }
+
+    pub fn set_scale(&mut self, x: f32, y: f32) {
+        self.scale = glm::scale(&self.identity, &glm::vec3(x, y, 0.0));
     }
 
     pub fn set_frame(&mut self, x: f32, y: f32) {
