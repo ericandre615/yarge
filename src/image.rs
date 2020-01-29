@@ -62,7 +62,7 @@ impl Image {
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
         let (tw, th) = texture.get_dimensions();
-        let (x, y) = (0.0, 0.0);
+        let (x, y) = image.pos;//(0.0, 0.0);
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
@@ -213,8 +213,8 @@ impl Image {
             Direction::Normal => 1.0,
             Direction::Flipped => -1.0,
         };
-        //let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
-        let model = self.model;
+        let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
+        //let model = self.model;
         let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
         let texcoord_transform = self.texture_transform.get_transform();
         // call BindTexture again for render to draw the right image for each image/object
