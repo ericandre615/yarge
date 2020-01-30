@@ -120,7 +120,9 @@ impl Rectangle {
     }
 
     pub fn render(&self, camera: &Camera) {
-        let mvp = camera.get_projection() * camera.get_view() * self.model;
+        //let model = glm::rotate(&self.model, 0.14, &glm::vec3(0.0, 1.0, 0.0));
+        let model = self.model;
+        let mvp = camera.get_projection() * camera.get_view() * model;
 
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.props.color);

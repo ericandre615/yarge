@@ -117,7 +117,8 @@ fn run() -> Result<(), failure::Error> {
     let scale_ix = 210.0 / 420.0 * 4.0;
     let scale_iy = 210.0 / 420.0 * 4.0;
     image.set_texture_scale(scale_ix, scale_iy);
-    image3.set_texture_scale(0.9, 0.9);
+    image3.set_texture_scale(0.75, 0.75);
+    image3.set_frame((-40, 40));
     spritesheet.set_frame((256, 0));
 
     let sprite_frames = [

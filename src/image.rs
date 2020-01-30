@@ -44,7 +44,7 @@ pub struct Image {
     uniform_color: i32,
     uniform_texcoord_transform: i32,
     image: ImageProps,
-    frame: (u32, u32),
+    frame: (i32, i32),
     indicies: Vec<u32>,
     texture: Texture,
     texture_transform: TextureTransform,
@@ -194,7 +194,7 @@ impl Image {
         self.model
     }
 
-    pub fn set_frame(&mut self, frame: (u32, u32)) {
+    pub fn set_frame(&mut self, frame: (i32, i32)) {
         let (fx, fy) = frame;
         self.frame = frame;
         self.texture_transform.set_frame(fx as f32, fy as f32);
@@ -214,6 +214,7 @@ impl Image {
             Direction::Flipped => -1.0,
         };
         let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
+        //let rotation = glm::rotate(&glm::identity(), 3.14, &glm::vec3(0.0, 1.0, 0.0));
         //let model = self.model;
         let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
         let texcoord_transform = self.texture_transform.get_transform();
