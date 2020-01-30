@@ -62,7 +62,7 @@ impl Image {
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
         let texture = Texture::new(res, image.img_path.to_string())?;
         let (tw, th) = texture.get_dimensions();
-        let (x, y) = image.pos;//(0.0, 0.0);
+        let (x, y) = image.pos;
         let (width, height) = image.dim;
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
@@ -75,13 +75,6 @@ impl Image {
            // second triangle
            Vertex { pos: (x2, y2, 0.0).into(), tex: (tx, ty).into() }
         ];
-        //let vertices: Vec<Vertex> = vec![
-        //   Vertex { pos: (x, y, 0.0).into(), tex: (0.0, 0.0).into() },
-        //   Vertex { pos: (x2, y, 0.0).into(), tex: (tw as f32, 0.0).into() },
-        //   Vertex { pos: (x, y2, 0.0).into(), tex: (0.0, th as f32).into() },
-        //   // second triangle
-        //   Vertex { pos: (x2, y2, 0.0).into(), tex: (tw as f32, th as f32).into() }
-        //];
         let indicies = vec![
             0, 1, 2,
             2, 1, 3,
@@ -214,10 +207,9 @@ impl Image {
             Direction::Flipped => -1.0,
         };
         let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
-        //let rotation = glm::rotate(&glm::identity(), 3.14, &glm::vec3(0.0, 1.0, 0.0));
-        //let model = self.model;
         let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
         let texcoord_transform = self.texture_transform.get_transform();
+
         // call BindTexture again for render to draw the right image for each image/object
         self.texture.bind();
         self.program.set_used();
