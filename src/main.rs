@@ -15,6 +15,7 @@ mod triangle;
 mod rectangle;
 mod image;
 mod camera;
+mod renderer;
 mod debug;
 
 use helpers::{data};

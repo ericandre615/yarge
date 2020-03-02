@@ -1,0 +1,16 @@
+#version 330 core
+
+precision mediump float;
+
+uniform sampler2D Image;
+uniform vec4 TexColor;
+
+in VS_OUTPUT {
+    vec2 TexCoord;
+} IN;
+
+out vec4 Color;
+
+void main() {
+    gl_FragColor = texture2D(Image, IN.TexCoord) * vec4(TexColor.x, TexColor.y, TexColor.z, TexColor.w);
+}
