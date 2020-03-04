@@ -52,7 +52,9 @@ fn run() -> Result<(), failure::Error> {
     let mut event_pump = sdl.event_pump().unwrap();
     let mut viewport = helpers::Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
-    unsafe { gl::ClearColor(0.3, 0.3, 0.5, 1.0); }
+    let mut renderer = renderer::Renderer2D::new();
+
+    renderer.set_clear_color(30, 30, 30, 1.0);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
@@ -187,10 +189,12 @@ fn run() -> Result<(), failure::Error> {
         //let (tx, ty) = image3.get_position();
         //camera.set_position(tx, ty, 0.0);
         // render window contents here
-        unsafe {
-            viewport.set_used();
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
+
+        viewport.set_used();
+
+        triangle.render(); // not rendered because renderer.render calls clear... is that clear though?
+        //renderer.clear();
+        renderer.render();
 
         let delta_time = timer.delta_time();
 
@@ -200,7 +204,6 @@ fn run() -> Result<(), failure::Error> {
             image3.set_color((0, 0, 255, 1.0));
         }
 
-        triangle.render();
         rect1.render(&camera);
         rect2.render(&camera);
         rect3.render(&camera);

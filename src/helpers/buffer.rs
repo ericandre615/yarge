@@ -12,6 +12,8 @@ impl BufferType for BufferTypeElementArray {
 }
 pub type ArrayBuffer = Buffer<BufferTypeArray>;
 pub type ElementArrayBuffer = Buffer<BufferTypeElementArray>;
+pub type DynamicArrayBuffer = DynamicBuffer<BufferTypeArray>;
+pub type DynamicElementArrayBuffer = DynamicBuffer<BufferTypeElementArray>;
 
 pub struct Buffer<B> where B: BufferType {
     vbo: gl::types::GLuint,
@@ -57,6 +59,73 @@ impl<B> Buffer<B> where B: BufferType {
 }
 
 impl<B> Drop for Buffer<B> where B: BufferType {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteBuffers(1, &mut self.vbo);
+        }
+    }
+}
+
+//let default_max_buffer_size = (1000 * ::std::mem::size_of::<T>()) as gl::types::GLsizeiptr;
+pub struct DynamicBuffer<B> where B: BufferType {
+    vbo: gl::types::GLuint,
+    max_buffer_size: gl::types::GLsizeiptr,
+    _marker: ::std::marker::PhantomData<B>,
+}
+
+impl<B> DynamicBuffer<B> where B: BufferType {
+    pub fn new(max_buffer_size: gl::types::GLsizeiptr) -> DynamicBuffer<B> {
+        let mut vbo: gl::types::GLuint = 0;
+
+        unsafe {
+            gl::GenBuffers(1, &mut vbo);
+        }
+
+        DynamicBuffer {
+            vbo,
+            max_buffer_size,
+            _marker: ::std::marker::PhantomData,
+        }
+    }
+
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindBuffer(B::BUFFER_TYPE, self.vbo);
+        }
+    }
+
+    pub fn unbind(&self) {
+        unsafe {
+            gl::BindBuffer(B::BUFFER_TYPE, 0);
+        }
+    }
+
+    pub fn set_buffer_data<T>(&self) {
+        unsafe {
+            gl::BufferData(
+                B::BUFFER_TYPE,
+                self.max_buffer_size,
+                // TODO: check here first if there are issues, this seemed to do weird stuff before
+                ::std::ptr::null(), // nullptr, null, //data.as_ptr() as *const gl::types::GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+        }
+    }
+
+    pub fn upload_draw_data<T>(&self, data: &[T], offset: gl::types::GLintptr) {
+        // offset type = gl::types::GLintptr
+        unsafe {
+            gl::BufferSubData(
+                B::BUFFER_TYPE,
+                offset, // start at 0 go up by size of data, need to keep track of this?
+                (data.len() * ::std::mem::size_of::<T>()) as gl::types::GLsizeiptr, // data_size_in_bytes
+                data.as_ptr() as *const gl::types::GLvoid,
+            );
+        }
+    }
+}
+
+impl<B> Drop for DynamicBuffer<B> where B: BufferType {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteBuffers(1, &mut self.vbo);

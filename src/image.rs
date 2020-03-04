@@ -3,7 +3,7 @@ use std::ffi::{CString, c_void};
 
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
-use crate::texture::{Texture};
+use crate::texture::{Texture, TextureBuilder};
 use crate::texture::transform::{TextureTransform};
 use crate::camera::{Camera};
 
@@ -60,7 +60,9 @@ impl Image {
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("TexColor")?;
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
-        let texture = Texture::new(res, image.img_path.to_string())?;
+        let texture = TextureBuilder::new(res, image.img_path.to_string())
+            .with_texture_slot(0)
+            .build()?;
         let (tw, th) = texture.get_dimensions();
         let (x, y) = image.pos;
         let (width, height) = image.dim;
@@ -211,6 +213,9 @@ impl Image {
         let texcoord_transform = self.texture_transform.get_transform();
 
         // call BindTexture again for render to draw the right image for each image/object
+        //unsafe {
+        //    gl::ActiveTexture(gl::TEXTURE0 + self.texture.get_texture_offset());
+        //}
         self.texture.bind();
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);

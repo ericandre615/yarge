@@ -6,6 +6,7 @@ use nanoid::nanoid;
 pub enum LayerKind {
     Background,
     Generic,
+    Foreground,
     UI,
     Overlay,
 }
@@ -26,6 +27,10 @@ impl Layer {
             kind,
             ordinal,
         }
+    }
+
+    pub fn get_id(&self) -> String {
+        self.id.clone()
     }
 
     pub fn on_attach() {
@@ -108,9 +113,11 @@ mod tests {
         let mut actual_layers = Layers::new();
         let expected_layers = vec![test_layer_two.clone()];
 
-        actual_layers.add(test_layer.clone());
-        actual_layers.add(test_layer_two.clone());
-        actual_layers.remove(&test_layer.id);
+        let test_layer_id = test_layer.get_id();
+
+        actual_layers.add(test_layer);
+        actual_layers.add(test_layer_two);
+        actual_layers.remove(&test_layer_id);
 
         assert_eq!(expected_layers, actual_layers.layers);
     }
@@ -121,10 +128,12 @@ mod tests {
         let test_layer_two = Layer::new("test_one", LayerKind::Background, 2);
         let test_layer_three = Layer::new("test_two", LayerKind::Generic, 1);
         let test_layer_four = Layer::new("test_two", LayerKind::Generic, 2);
-        let test_layer_five = Layer::new("test_three", LayerKind::UI, 1);
-        let test_layer_six = Layer::new("test_three", LayerKind::UI, 2);
-        let test_layer_seven = Layer::new("test_four", LayerKind::Overlay, 1);
-        let test_layer_eight = Layer::new("test_four", LayerKind::Overlay, 2);
+        let test_layer_five = Layer::new("test_three", LayerKind::Foreground, 1);
+        let test_layer_six = Layer::new("test_three", LayerKind::Foreground, 2);
+        let test_layer_seven = Layer::new("test_four", LayerKind::UI, 1);
+        let test_layer_eight = Layer::new("test_four", LayerKind::UI, 2);
+        let test_layer_nine = Layer::new("test_five", LayerKind::Overlay, 1);
+        let test_layer_ten = Layer::new("test_five", LayerKind::Overlay, 2);
 
         let mut actual_layers = Layers::new();
         let expected_layers = vec![
@@ -136,14 +145,18 @@ mod tests {
             test_layer_six.clone(),
             test_layer_seven.clone(),
             test_layer_eight.clone(),
+            test_layer_nine.clone(),
+            test_layer_ten.clone(),
         ];
 
         actual_layers.add(test_layer_four);
         actual_layers.add(test_layer_three);
         actual_layers.add(test_layer_two);
+        actual_layers.add(test_layer_ten);
         actual_layers.add(test_layer_one);
         actual_layers.add(test_layer_five);
         actual_layers.add(test_layer_seven);
+        actual_layers.add(test_layer_nine);
         actual_layers.add(test_layer_six);
         actual_layers.add(test_layer_eight);
 
