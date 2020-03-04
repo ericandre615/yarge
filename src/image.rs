@@ -43,6 +43,7 @@ pub struct Image {
     uniform_mvp: i32,
     uniform_color: i32,
     uniform_texcoord_transform: i32,
+    uniform_texsampler: i32,
     image: ImageProps,
     frame: (i32, i32),
     indicies: Vec<u32>,
@@ -60,8 +61,9 @@ impl Image {
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("TexColor")?;
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
+        let uniform_texsampler = program.get_uniform_location("TexSampler")?;
         let texture = TextureBuilder::new(res, image.img_path.to_string())
-            .with_texture_slot(0)
+            .with_texture_slot(1)
             .build()?;
         let (tw, th) = texture.get_dimensions();
         let (x, y) = image.pos;
@@ -117,6 +119,7 @@ impl Image {
             uniform_mvp,
             uniform_color,
             uniform_texcoord_transform,
+            uniform_texsampler,
             indicies,
             texture,
             texture_transform: TextureTransform::new(tw, th),
@@ -220,6 +223,7 @@ impl Image {
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);
         self.program.set_uniform_mat4f(self.uniform_texcoord_transform, &texcoord_transform);
+        self.program.set_uniform_1i(self.uniform_texsampler, self.texture.get_texture_offset() as i32);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
         self.vao.bind();
 

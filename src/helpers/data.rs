@@ -280,3 +280,36 @@ impl From<(f32, f32)> for f32_f32 {
     }
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct f32_ {
+    pub d0: f32,
+}
+
+impl f32_ {
+    pub fn new(d0: f32) -> f32_ {
+        f32_ {
+            d0
+        }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            1,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint,
+            offset as *const gl::types::GLvoid,
+        );
+    }
+}
+
+impl From<f32> for f32_ {
+    fn from(other: f32) -> Self {
+        f32_::new(other)
+    }
+}
+
