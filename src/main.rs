@@ -85,6 +85,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (20.0, 20.0),
             dim: (100, 100),
             img_path: "images/penguin.png".to_string(),
+            ..Default::default()
         }
     )?;
     let mut image3 = image::Image::new(
@@ -93,6 +94,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (40.0, 40.0),
             dim: (256, 256),
             img_path: "images/ninja-gaiden.gif".to_string(),
+            texture_slot: 2,
         }
     )?;
     let mut image = image::Image::new(
@@ -101,6 +103,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (180.0, 80.0),
             dim: (210, 210),//(420, 420),
             img_path: "images/mario-sprite.png".to_string(),
+            ..Default::default()
         }
     )?;
     let mut spritesheet = image::Image::new(
@@ -109,6 +112,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (20.0, 20.0),
             dim: (256, 256),
             img_path: "images/ninja-gaiden-spritesheet.png".to_string(),
+            texture_slot: 30,
         }
     )?;
 

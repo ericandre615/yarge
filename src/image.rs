@@ -22,6 +22,18 @@ pub struct ImageProps {
     pub pos: (f32, f32),
     pub dim: (u32, u32),
     pub img_path: String,
+    pub texture_slot: u32,
+}
+
+impl Default for ImageProps {
+    fn default() -> Self {
+        ImageProps {
+            pos: (0.0, 0.0),
+            dim: (0, 0),
+            img_path: "".to_string(),
+            texture_slot: 1,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -63,7 +75,7 @@ impl Image {
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
         let uniform_texsampler = program.get_uniform_location("TexSampler")?;
         let texture = TextureBuilder::new(res, image.img_path.to_string())
-            .with_texture_slot(1)
+            .with_texture_slot(image.texture_slot)
             .build()?;
         let (tw, th) = texture.get_dimensions();
         let (x, y) = image.pos;
@@ -216,9 +228,6 @@ impl Image {
         let texcoord_transform = self.texture_transform.get_transform();
 
         // call BindTexture again for render to draw the right image for each image/object
-        //unsafe {
-        //    gl::ActiveTexture(gl::TEXTURE0 + self.texture.get_texture_offset());
-        //}
         self.texture.bind();
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);
