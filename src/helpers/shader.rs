@@ -162,6 +162,26 @@ impl Program {
         }
     }
 
+    pub fn set_uniform_1iv(&self, location: i32, value: &Vec<i32>) {
+        unsafe {
+            gl::Uniform1iv(
+                location,
+                value.len() as i32,
+                value.as_ptr() as *const i32
+            );
+        }
+    }
+
+    pub fn set_uniform_1fv(&self, location: i32, value: &Vec<f32>) {
+        unsafe {
+            gl::Uniform1fv(
+                location,
+                value.len() as i32,
+                value.as_ptr() as *const f32
+            );
+        }
+    }
+
     pub fn set_uniform_2f(&self, location: i32, value: &glm::Vec2) {
         unsafe {
             gl::Uniform2f(location, value.x, value.y);

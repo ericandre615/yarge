@@ -17,6 +17,7 @@ mod image;
 mod camera;
 mod renderer;
 mod debug;
+mod sprite;
 
 use helpers::{data};
 use helpers::timer::{Timer};
@@ -52,11 +53,11 @@ fn run() -> Result<(), failure::Error> {
     let mut event_pump = sdl.event_pump().unwrap();
     let mut viewport = helpers::Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
-    let mut renderer = renderer::Renderer2D::new();
+    let res = Resources::from_relative_path(Path::new("assets")).unwrap();
+    let mut renderer = renderer::Renderer2D::new(&res)?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
         width: 256.0,
