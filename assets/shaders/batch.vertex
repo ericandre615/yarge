@@ -5,7 +5,7 @@ layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec4 TexColor;
 layout (location = 3) in float TexIndex;
 
-uniform mat4 TexCoordTransform;
+// uniform mat4 TexCoordTransform;
 uniform mat4 MVP;
 
 out VS_OUTPUT {
@@ -17,7 +17,8 @@ out VS_OUTPUT {
 void main() {
     gl_Position = MVP * vec4(Position, 1.0);
 
-    OUT.TexCoord = vec2(TexCoordTransform * vec4(TexCoord, 1.0, 1.0));
     OUT.TexColor = TexColor;
-    OUT.TexIndex = TexIndex;
+    OUT.TexIndex = TexIndex; //int(TexIndex -0.5);
+    //OUT.TexCoord = vec2(TexCoordTransform * vec4(TexCoord, 1.0, 1.0));
+    OUT.TexCoord = TexCoord;
 }

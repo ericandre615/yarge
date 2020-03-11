@@ -59,7 +59,7 @@ pub struct Image {
     image: ImageProps,
     frame: (i32, i32),
     indicies: Vec<u32>,
-    texture: Texture,
+    pub texture: Texture, // TODO: most likley temporary for debugging
     texture_transform: TextureTransform,
     color: (f32, f32, f32, f32),
     model: glm::TMat4<f32>,

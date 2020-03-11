@@ -1,5 +1,5 @@
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
 pub struct f32_f32_f32 {
     pub d0: f32,
@@ -36,7 +36,7 @@ impl From<(f32, f32, f32)> for f32_f32_f32 {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
 pub struct f32_f32_f32_f32 {
     pub d0: f32,
@@ -247,7 +247,7 @@ impl From<Vec<f32>> for TexCoords {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
 pub struct f32_f32 {
     pub d0: f32,
@@ -313,3 +313,8 @@ impl From<f32> for f32_ {
     }
 }
 
+impl From<u32> for f32_ {
+    fn from(other: u32) -> Self {
+        f32_::new(other as f32)
+    }
+}

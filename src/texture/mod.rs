@@ -2,6 +2,8 @@ pub mod transform;
 
 use image::{ImageResult, DynamicImage, GenericImageView};
 
+use std::fmt;
+
 use crate::resources::*;
 
 pub struct TextureBuilder<'a> {
@@ -36,6 +38,21 @@ pub struct Texture {
     image_path: String,
 }
 
+impl fmt::Debug for Texture {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Texture Debug not implemented")
+        //match self {
+        //    &
+        //}
+    }
+}
+
+impl PartialEq for Texture {
+    fn eq(&self, other: &Self) -> bool {
+        self.texture_handle == other.texture_handle
+    }
+}
+
 impl Texture {
     pub fn new(res: &Resources, image_path: String, texture_slot: u32) -> Result<Texture, failure::Error> {
         let image_data = res.load_image_from_path(&image_path)?;
@@ -61,6 +78,14 @@ impl Texture {
         self.texture_offset
     }
 
+    pub fn get_texture_slot(&self) -> u32 {
+        gl::TEXTURE0 + self.texture_offset
+    }
+
+    pub fn get_texture_handle(&self) -> gl::types::GLuint {
+        self.texture_handle
+    }
+
     pub fn bind(&self) {
         unsafe {
             gl::ActiveTexture(gl::TEXTURE0 + self.texture_offset as gl::types::GLuint);
@@ -68,8 +93,9 @@ impl Texture {
         }
     }
 
-    pub fn unbind() {
+    pub fn unbind(&self) {
         unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + self.texture_offset as gl::types::GLuint);
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }

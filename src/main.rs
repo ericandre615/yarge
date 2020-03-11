@@ -23,6 +23,7 @@ use helpers::{data};
 use helpers::timer::{Timer};
 use resources::Resources;
 use camera::*;
+use sprite::*;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -57,6 +58,7 @@ fn run() -> Result<(), failure::Error> {
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
+
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -115,6 +117,26 @@ fn run() -> Result<(), failure::Error> {
             img_path: "images/ninja-gaiden-spritesheet.png".to_string(),
             texture_slot: 30,
         }
+    )?;
+
+    let mut some_sprite = Sprite::new(
+        &res,
+        "images/test.png".to_string(),
+        SpriteProps {
+            pos: (100.0, 20.0, 0.0),
+            dim: (240, 240),
+            color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
+        },
+    )?;
+
+    let mut some_other_sprite = Sprite::new(
+        &res,
+        "images/test_b.png".to_string(),
+        SpriteProps {
+            pos: (20.0, 280.0, 0.0),
+            dim: (240, 240),
+            color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
+        },
     )?;
 
     image2.flip_v();
@@ -199,7 +221,7 @@ fn run() -> Result<(), failure::Error> {
 
         triangle.render(); // not rendered because renderer.render calls clear... is that clear though?
         //renderer.clear();
-        renderer.render();
+
 
         let delta_time = timer.delta_time();
 
@@ -222,6 +244,12 @@ fn run() -> Result<(), failure::Error> {
         i += 1;
 
         if i >= sprite_frames.len() - 1 { i = 0; }
+
+        renderer.begin_batch();
+        //renderer.submit(&some_sprite);
+        renderer.submit(&some_other_sprite);
+        renderer.end_batch();
+        renderer.render(&camera);
 
         window.gl_swap_window();
     }

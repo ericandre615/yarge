@@ -100,7 +100,7 @@ impl<B> DynamicBuffer<B> where B: BufferType {
         }
     }
 
-    pub fn set_buffer_data<T>(&self) {
+    pub fn set_buffer_data(&self) {
         unsafe {
             gl::BufferData(
                 B::BUFFER_TYPE,
