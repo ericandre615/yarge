@@ -238,13 +238,11 @@ fn run() -> Result<(), failure::Error> {
                             let (x, _y) = image3.get_position();
                             image3.set_orientation(image::Direction::Normal, image::Direction::Normal);
                             image3.set_pos_x(x + 1.0 * dt);
-
                         },
                         Some(sdl2::keyboard::Keycode::Left) => {
                             let (x, _y) = image3.get_position();
                             image3.set_orientation(image::Direction::Flipped, image::Direction::Normal);
                             image3.set_pos_x(x - 1.0 * dt);
-
                         },
                         Some(sdl2::keyboard::Keycode::A) => {
                             let pos = camera.get_position();
