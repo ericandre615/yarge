@@ -166,7 +166,7 @@ impl Program {
         unsafe {
             gl::Uniform1iv(
                 location,
-                1,//value.len() as i32,
+                value.len() as i32,
                 value.as_ptr() as *const i32
             );
         }
@@ -176,7 +176,7 @@ impl Program {
         unsafe {
             gl::Uniform1fv(
                 location,
-                value.len() as i32,
+                1,//value.len() as i32,
                 value.as_ptr() as *const f32
             );
         }
@@ -186,7 +186,7 @@ impl Program {
         unsafe {
             gl::Uniform1uiv(
                 location,
-                value.len() as i32,
+                1,//value.len() as i32,
                 value.as_ptr() as *const u32
             );
         }

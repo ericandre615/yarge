@@ -70,6 +70,7 @@ impl<B> Drop for Buffer<B> where B: BufferType {
 pub struct DynamicBuffer<B> where B: BufferType {
     vbo: gl::types::GLuint,
     max_buffer_size: gl::types::GLsizeiptr,
+    pub buffer_offset: isize,
     _marker: ::std::marker::PhantomData<B>,
 }
 
@@ -84,6 +85,7 @@ impl<B> DynamicBuffer<B> where B: BufferType {
         DynamicBuffer {
             vbo,
             max_buffer_size,
+            buffer_offset: 0,
             _marker: ::std::marker::PhantomData,
         }
     }
@@ -112,16 +114,24 @@ impl<B> DynamicBuffer<B> where B: BufferType {
         }
     }
 
-    pub fn upload_draw_data<T>(&self, data: &[T], offset: gl::types::GLintptr) {
-        // offset type = gl::types::GLintptr
+    pub fn upload_draw_data<T>(&self, data: &[T]/*, offset: isize*/) {
+        // need to cast isize to ? offset type = gl::types::GLintptr
         unsafe {
             gl::BufferSubData(
                 B::BUFFER_TYPE,
-                offset, // start at 0 go up by size of data, need to keep track of this?
+                self.buffer_offset, // start at 0 go up by size of data, need to keep track of this?
                 (data.len() * ::std::mem::size_of::<T>()) as gl::types::GLsizeiptr, // data_size_in_bytes
                 data.as_ptr() as *const gl::types::GLvoid,
             );
         }
+    }
+
+    pub fn set_buffer_offset(&mut self, offset: isize) {
+        self.buffer_offset = offset;
+    }
+
+    pub fn reset_buffer_offset(&mut self) {
+        self.buffer_offset = 0;
     }
 }
 

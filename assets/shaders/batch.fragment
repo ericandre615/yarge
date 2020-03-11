@@ -13,48 +13,116 @@ in VS_OUTPUT {
 out vec4 Color;
 
 void main() {
-    int ttid = int(IN.TexIndex - 0.5);
-    //vec4 baseColor = vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-    vec4 baseColor = vec4(IN.TexIndex / 255.0, 1, 1, 1);
+    int ttid = int(IN.TexIndex + 0.5);//int(IN.TexIndex - 0.5);
+    vec4 baseColor = vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+    //vec4 baseColor = vec4(IN.TexIndex / 255.0, 1, 1, 1);
     vec4 texColor = baseColor;
-    //vec4 texNoop = texture2D(Textures[0u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+    vec4 texNoop = texture(Textures[1u], IN.TexCoord) * vec4(IN.TexIndex, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+    //vec4 texColor = texture2D(Textures[0u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+    vec4 texColors[32];
     // TODO: I really dont like doing it this way, but it seems GL < 4 you need to. This shader should probably
     // be dynamically created in code based on the actual MAX_TEXTURE_SLOTS
     switch (ttid)//(IN.TexIndex)
     {
-        case  0: texColor = texture2D(Textures[0u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  1: texColor = texture2D(Textures[1u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  2: texColor = texture2D(Textures[2u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  3: texColor = texture2D(Textures[3u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  4: texColor = texture2D(Textures[4u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  5: texColor = texture2D(Textures[5u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  6: texColor = texture2D(Textures[6u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  7: texColor = texture2D(Textures[7u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  8: texColor = texture2D(Textures[8u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case  9: texColor = texture2D(Textures[9u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 10: texColor = texture2D(Textures[10u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 11: texColor = texture2D(Textures[11u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 12: texColor = texture2D(Textures[12u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 13: texColor = texture2D(Textures[13u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 14: texColor = texture2D(Textures[14u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 15: texColor = texture2D(Textures[15u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 16: texColor = texture2D(Textures[16u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 17: texColor = texture2D(Textures[17u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 18: texColor = texture2D(Textures[18u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 19: texColor = texture2D(Textures[19u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 20: texColor = texture2D(Textures[20u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 21: texColor = texture2D(Textures[21u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 22: texColor = texture2D(Textures[22u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 23: texColor = texture2D(Textures[23u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 24: texColor = texture2D(Textures[24u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 25: texColor = texture2D(Textures[25u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 26: texColor = texture2D(Textures[26u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 27: texColor = texture2D(Textures[27u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 28: texColor = texture2D(Textures[28u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 29: texColor = texture2D(Textures[29u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 30: texColor = texture2D(Textures[30u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        case 31: texColor = texture2D(Textures[31u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
-        default: texColor = baseColor;
+        case  0:
+            texColor = texture2D(Textures[0u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  1:
+            texColor = texture2D(Textures[1u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  2:
+            texColor = texture2D(Textures[2u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  3:
+            texColor = texture2D(Textures[3u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  4:
+            texColor = texture2D(Textures[4u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  5:
+            texColor = texture2D(Textures[5u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  6:
+            texColor = texture2D(Textures[6u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  7:
+            texColor = texture2D(Textures[7u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  8:
+            texColor = texture2D(Textures[8u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case  9:
+            texColor = texture2D(Textures[9u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 10:
+            texColor = texture2D(Textures[10u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 11:
+            texColor = texture2D(Textures[11u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 12:
+            texColor = texture2D(Textures[12u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 13:
+            texColor = texture2D(Textures[13u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 14:
+            texColor = texture2D(Textures[14u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 15:
+            texColor = texture2D(Textures[15u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 16:
+            texColor = texture2D(Textures[16u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 17:
+            texColor = texture2D(Textures[17u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 18:
+            texColor = texture2D(Textures[18u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 19:
+            texColor = texture2D(Textures[19u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 20:
+            texColor = texture2D(Textures[20u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 21:
+            texColor = texture2D(Textures[21u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 22:
+            texColor = texture2D(Textures[22u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 23:
+            texColor = texture2D(Textures[23u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 24:
+            texColor = texture2D(Textures[24u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 25:
+            texColor = texture2D(Textures[25u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 26:
+            texColor = texture2D(Textures[26u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 27:
+            texColor = texture2D(Textures[27u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 28:
+            texColor = texture2D(Textures[28u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 29:
+            texColor = texture2D(Textures[29u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 30:
+            texColor = texture2D(Textures[30u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        case 31:
+            texColor = texture2D(Textures[31u], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+            break;
+        default:
+            texColor = baseColor;
+            break;
     }
 
     //if (IN.TexIndex > 0.0) {
@@ -62,6 +130,12 @@ void main() {
     //    //texColor = texture(Textures[tid], IN.TexCoord) * vec4(IN.TexColor.x, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
     //    texColor = vec4(tid / 2, 0, 0, 1);
     //}
+
+    //for(int i = 0; i < 32; i++) {
+    //    texColors[i] = texture(Textures[i], IN.TexCoord) * vec4(IN.TexIndex, IN.TexColor.y, IN.TexColor.z, IN.TexColor.w);
+    //}
+
+    //texColor = texColors[ttid];
 
     //Color = texNoop;
     Color = texColor;

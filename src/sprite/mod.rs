@@ -33,6 +33,7 @@ pub struct SpriteProps {
     pub pos: (f32, f32, f32),
     pub dim: (u32, u32),
     pub color: (u8, u8, u8, f32),
+    pub texture_slot: u32,
 }
 
 impl Default for SpriteProps {
@@ -41,6 +42,7 @@ impl Default for SpriteProps {
             pos: (0.0, 0.0, 0.0),
             dim: (0, 0),
             color: (0, 0, 0, 0.0),
+            texture_slot: 0,
         }
     }
 }
@@ -119,7 +121,7 @@ pub struct Sprite {
 impl Sprite {
     pub fn new(res: &Resources, image_path: String, props: SpriteProps) -> Result<Sprite, failure::Error> {
         let texture = TextureBuilder::new(res, image_path.to_string())
-            .with_texture_slot(0)
+            .with_texture_slot(props.texture_slot)
             .build()?;
         let mut transform = SpriteTransform::default();
         let (px, py, pz) = props.pos;

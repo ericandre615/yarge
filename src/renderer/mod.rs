@@ -33,6 +33,7 @@ pub struct Renderer2D<'s> {
     ibo: buffer::ElementArrayBuffer,
     clear_color: (u8, u8, u8, f32),
     max_textures: gl::types::GLint,
+    max_sprites: usize,
     texture_slots: Vec<i32>,
     uniforms: HashMap<String, i32>,
 }
@@ -40,8 +41,9 @@ pub struct Renderer2D<'s> {
 impl<'s> Renderer2D<'s> {
     pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
         let default_clear_color = (255, 255, 255, 1.0);
-        let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 1000) as gl::types::GLsizeiptr;
-        let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 2000) as gl::types::GLsizeiptr;
+        let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 4000) as gl::types::GLsizeiptr;
+        let max_sprites = 1000;
+        let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
         let max_textures = system::SystemInfo::get_max_textures();
         let program = helpers::Program::from_resource(res, "shaders/batch")?;
         let uniform_textures = program.get_uniform_location("Textures")?;
@@ -54,6 +56,17 @@ impl<'s> Renderer2D<'s> {
         let vao = buffer::VertexArray::new();
         let ibo = buffer::ElementArrayBuffer::new();
 
+        vbo.bind();
+        vbo.set_buffer_data();
+        vbo.unbind();
+
+        vao.bind();
+        vbo.bind();
+
+        BatchVertex::vertex_attrib_pointers();
+
+        vbo.unbind();
+        vao.unbind();
 
         Ok(Renderer2D {
             program,
@@ -66,11 +79,12 @@ impl<'s> Renderer2D<'s> {
             ibo,
             clear_color: default_clear_color,
             max_textures,
+            max_sprites,
             texture_slots,
             uniforms: vec![
                 ("textures".to_owned(), uniform_textures),
                 ("mvp".to_owned(), uniform_mvp),
-            ].into_iter().collect()
+            ].into_iter().collect(),
         })
     }
 
@@ -84,24 +98,26 @@ impl<'s> Renderer2D<'s> {
     pub fn begin_batch(&mut self) {
         // TODO: reset pointer into the vertex data buffer
         // keep track of where we are in the buffer to put data
-
     }
 
     pub fn end_batch(&mut self) {
         // TODO: flush to gpu? draw
+        // TODO: probably can just set this value once with max? will it matter?
         self.indices = generate_batch_indices(self.sprites.len());
 
         println!("GENERATED_BATCH_INDEXES: {:?}", self.indices);
 
-        self.vbo.bind();
-        self.vbo.set_buffer_data();
-        self.vbo.unbind();
+        //self.vbo.bind();
+        //self.vbo.set_buffer_data();
+        //self.vbo.unbind();
 
         self.vbo.bind();
         //self.vbo.static_draw_data(&vertices);
         //self.vbo.upload_draw_data(&vertices);
+
+        self.vbo.reset_buffer_offset();
+
         for sprite in &self.sprites {
-            let offset = 0;
             let sprite_vertices = sprite.get_vertices();
             //let sprite_tex_id = self.texture_slots.binary_search(&s);
             let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
@@ -121,32 +137,35 @@ impl<'s> Renderer2D<'s> {
                 );
             };
 
-            self.vbo.upload_draw_data(
-                &batch_vertices,
-                0 // offset
-            ); //TODO: might need to have some conversion from SpriteVertex to BatchVertex
+            //TODO: might need to have some conversion from SpriteVertex to BatchVertex
+            self.vbo.upload_draw_data(&batch_vertices);
+            self.vbo.set_buffer_offset(self.vbo.buffer_offset + ((::std::mem::size_of::<BatchVertex>()) * 4) as isize);
 
             self.vertices.push(batch_vertices);
         }
+
+        self.vbo.reset_buffer_offset();
 
         println!("BATCH VERTEX: {:?}", self.vertices);
 
         self.vbo.unbind();
 
-        self.vao.bind();
-        self.vbo.bind();
+        //self.vao.bind();
+        //self.vbo.bind();
 
-        BatchVertex::vertex_attrib_pointers();
+        //BatchVertex::vertex_attrib_pointers();
 
+        // TODO: move ot doing this once on new with max_sprites to calc indices
         self.ibo.bind();
         self.ibo.static_draw_data(&self.indices);
         self.ibo.unbind();
 
-        self.vbo.unbind();
-        self.ibo.unbind();
-        self.vao.unbind();
+        //self.vbo.unbind();
+        //self.ibo.unbind();
+        //self.vao.unbind();
 
-        self.vertices = Vec::new();
+        // TODO: I dont think we actually need to have this vertices data at all, it's been uploaded to the gpu already
+        self.vertices = Vec::new(); // reset vertex data
     }
 
     pub fn submit(&mut self, sprite: &'s Sprite) {  // TODO: testing, should be able to submit many sprites at once
@@ -157,6 +176,10 @@ impl<'s> Renderer2D<'s> {
         if has_sprite {
             println!("Sprite already submitted");
             return ();
+        }
+
+        if self.sprites.len() >= self.max_sprites {
+            // need to reset/end/flush/render and start a new batch
         }
 
         println!("Sprite Submitted: {:?}", sprite);
@@ -212,13 +235,16 @@ impl<'s> Renderer2D<'s> {
     }
 
     pub fn render(&mut self, camera: &Camera) {
-        self.clear();
+        //self.clear();
         println!("RENDERING 2D");
         println!("MAX_TEXTURES {:?}", self.max_textures);
 
         let mvp = camera.get_projection() * camera.get_view();
 
-        //self.vao.bind();
+        self.vao.bind();
+        //self.program.set_used();
+        //self.program.set_uniform_mat4f(*self.uniforms.get("mvp").unwrap(), &mvp);
+        //self.program.set_uniform_1iv(*self.uniforms.get("textures").unwrap(), &self.texture_slots);
 
         //for sprite in &self.sprites {
         //    println!("Sprites submitted to render {:?}", sprite);
@@ -231,25 +257,30 @@ impl<'s> Renderer2D<'s> {
         //    //}
         //}
 
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+
         for (i, handle) in self.texture_slots.iter().enumerate() {
+            println!("BIND_TEXTURES_TO i{} h{}", i, handle);
+            println!("BINDING_ACTIVE for {}", gl::TEXTURE0 + i as u32);
             unsafe {
                 gl::ActiveTexture(gl::TEXTURE0 + i as u32);
                 gl::BindTexture(gl::TEXTURE_2D, *handle as u32);
             }
         }
 
-        // TODO: do we need to rebind textures? loop through texture_slots?
-        // or could we just call sprite.texture.bind()???
-        //unsafe {
-        //    gl::ActiveTexture(gl::TEXTURE0 + i);
-        //    gl::BindTexture(gl::TEXTURE_2D, self.texture_slots[i]);
-        //}
-
         self.program.set_used();
         self.program.set_uniform_mat4f(*self.uniforms.get("mvp").unwrap(), &mvp);
-        self.program.set_uniform_1iv(*self.uniforms.get("textures").unwrap(), &self.texture_slots);
+        self.program.set_uniform_1iv(
+            *self.uniforms.get("textures").unwrap(),
+            &generate_texture_slots(self.max_textures)
+            //&self.texture_slots
+        );
 
         self.vao.bind();
+
+        println!("RENDERINDEX {:?}", self.indices.len() as i32 * 6);
 
         unsafe {
             gl::DrawElements(
@@ -260,36 +291,9 @@ impl<'s> Renderer2D<'s> {
             );
         }
 
+        self.vao.unbind();
+
         self.sprites = Vec::new();
-
-        //let scale_x = match self.orientation.horizontal {
-        //    Direction::Normal => 1.0,
-        //    Direction::Flipped => -1.0,
-        //};
-        //let scale_y = match self.orientation.vertical {
-        //    Direction::Normal => 1.0,
-        //    Direction::Flipped => -1.0,
-        //};
-        //let model = glm::scale(&self.model, &glm::vec3(scale_x, scale_y, 1.0));
-        //let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
-        //let texcoord_transform = self.texture_transform.get_transform();
-
-        //// call BindTexture again for render to draw the right image for each image/object
-        //self.texture.bind();
-        //self.program.set_used();
-        //self.program.set_uniform_4f(self.uniform_color, self.color);
-        //self.program.set_uniform_mat4f(self.uniform_texcoord_transform, &texcoord_transform);
-        //self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
-        //self.vao.bind();
-
-        //unsafe {
-        //    gl::DrawElements(
-        //        gl::TRIANGLES,
-        //        6,
-        //        gl::UNSIGNED_INT,
-        //        self.indicies.as_ptr() as *const gl::types::GLvoid
-        //    );
-        //}
     }
 }
 
@@ -322,7 +326,7 @@ fn generate_texture_slots(max: i32) -> Vec<i32> {
     let mut texture_slots = Vec::new();
 
     for i in 0..max {
-        texture_slots.push((gl::TEXTURE0 + i as u32) as i32);
+        texture_slots.push(i as i32);
     }
 
     texture_slots
@@ -353,7 +357,7 @@ mod tests {
     fn can_generate_texture_slots() {
         let max = 4;
         let actual_texture_slots = generate_texture_slots(max);
-        let expected_texture_slots = vec![33984, 33985, 33986, 33987];
+        let expected_texture_slots = vec![0, 1, 2, 3];
 
         assert_eq!(max as usize, actual_texture_slots.len());
         assert_eq!(expected_texture_slots, actual_texture_slots);

@@ -126,6 +126,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (100.0, 20.0, 0.0),
             dim: (240, 240),
             color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
+            texture_slot: 1,
         },
     )?;
 
@@ -136,6 +137,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (20.0, 280.0, 0.0),
             dim: (240, 240),
             color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
+            texture_slot: 2,
         },
     )?;
 
@@ -170,6 +172,47 @@ fn run() -> Result<(), failure::Error> {
 
     let mut is_look_at: bool = true;
 
+    //let mut vbs = Vec::new();
+    //for i in 0..20 {
+    //    let pos = (
+    //        10.0 + i as f32 + 10.0,
+    //        10.0 + i as f32 + 5.0,
+    //        0.0
+    //    );
+    //    let mut batch_sprite = Sprite::new(
+    //        &res,
+    //        "images/mario-sprite.png".to_string(),
+    //        SpriteProps {
+    //            pos: pos,
+    //            dim: (240, 240),
+    //            color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
+    //            texture_slot: 4,
+    //        },
+    //    )?;
+    //    vbs.push(batch_sprite);
+    //}
+    let mut mario_as_sprite = Sprite::new(
+        &res,
+        "images/mario-sprite.png".to_string(),
+        SpriteProps {
+            pos: (10.0, 10.0, 0.0),
+            dim: (210, 210),
+            color: (255, 255, 255, 0.75),
+            texture_slot: 8,
+        },
+    )?;
+
+    let mut ninja_as_sprite = Sprite::new(
+        &res,
+        "images/ninja-gaiden.gif".to_string(),
+        SpriteProps {
+            pos: (40.0, 40.0, 0.0),
+            dim: (256, 256),
+            color: (255, 255, 255, 1.0),
+            texture_slot: 7
+        },
+    )?;
+
     'main: loop {
         timer.tick();
         for event in event_pump.poll_iter() {
@@ -203,6 +246,25 @@ fn run() -> Result<(), failure::Error> {
                             image3.set_pos_x(x - 1.0 * dt);
 
                         },
+                        Some(sdl2::keyboard::Keycode::A) => {
+                            let pos = camera.get_position();
+                            camera.set_pos_x(pos.x - 5.0 * dt);
+                        },
+                        Some(sdl2::keyboard::Keycode::D) => {
+                            let pos = camera.get_position();
+                            camera.set_pos_x(pos.x + 5.0 * dt);
+                        },
+                        Some(sdl2::keyboard::Keycode::W) => {
+                            let pos = camera.get_position();
+                            camera.set_pos_y(pos.y - 5.0 * dt);
+                        },
+                        Some(sdl2::keyboard::Keycode::S) => {
+                            let pos = camera.get_position();
+                            camera.set_pos_y(pos.y + 5.0 * dt);
+                        },
+                        Some(sdl2::keyboard::Keycode::R) => {
+                            camera.set_position(0.0, 0.0, 0.0);
+                        },
                         _ => break,
                     }
                 },
@@ -220,8 +282,7 @@ fn run() -> Result<(), failure::Error> {
         viewport.set_used();
 
         triangle.render(); // not rendered because renderer.render calls clear... is that clear though?
-        //renderer.clear();
-
+        renderer.clear();
 
         let delta_time = timer.delta_time();
 
@@ -245,9 +306,15 @@ fn run() -> Result<(), failure::Error> {
 
         if i >= sprite_frames.len() - 1 { i = 0; }
 
+        //renderer.clear(); // DEBUG: only
+
         renderer.begin_batch();
-        //renderer.submit(&some_sprite);
+
+        renderer.submit(&some_sprite);
         renderer.submit(&some_other_sprite);
+        renderer.submit(&mario_as_sprite);
+        renderer.submit(&ninja_as_sprite);
+
         renderer.end_batch();
         renderer.render(&camera);
 
