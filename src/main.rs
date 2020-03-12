@@ -10,7 +10,7 @@ use std::path::Path;
 
 pub mod helpers;
 pub mod resources;
-pub mod texture;
+pub mod textures;
 mod triangle;
 mod rectangle;
 mod image;
@@ -55,10 +55,10 @@ fn run() -> Result<(), failure::Error> {
     let mut viewport = helpers::Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
+    let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
-
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -276,7 +276,9 @@ fn run() -> Result<(), failure::Error> {
         //let (tx, ty) = image3.get_position();
         //camera.set_position(tx, ty, 0.0);
         // render window contents here
-
+        // TODO: can not get look_at to work????
+        let (ipx, ipy) = image3.get_position();
+        //camera.look_at((ipx, ipy, 0.0));
         viewport.set_used();
 
         triangle.render(); // not rendered because renderer.render calls clear... is that clear though?

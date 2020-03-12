@@ -3,8 +3,8 @@ use std::ffi::{CString, c_void};
 
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
-use crate::texture::{Texture, TextureBuilder};
-use crate::texture::transform::{TextureTransform};
+use crate::textures::texture::{Texture, TextureBuilder};
+use crate::textures::transform::{TextureTransform};
 use crate::camera::{Camera};
 
 #[derive(VertexAttribPointers)]

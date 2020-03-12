@@ -1,6 +1,6 @@
 use crate::helpers::{data};
 use crate::resources::*;
-use crate::texture::*;
+use crate::textures::texture::*;
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -133,6 +133,20 @@ impl Sprite {
             texture,
             transform,
             image_path,
+            props,
+        })
+    }
+
+    pub fn with_texture(texture: &Texture, props: SpriteProps) -> Result<Sprite, failure::Error> {
+        let mut transform = SpriteTransform::default();
+
+        transform.set_translation(props.pos);
+
+        Ok(Sprite {
+            vertices: update_vertices(&texture, &props),
+            texture: texture.clone(),//TODO: how to handle only wantin ga ref if using an existing texture vs creating a sprite that creates it's own texture???
+            transform,
+            image_path: texture.image_path.to_string(), // TODO: need to probably use &strs
             props,
         })
     }

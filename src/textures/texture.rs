@@ -1,4 +1,4 @@
-pub mod transform;
+use crate::textures::transform;
 
 use image::{ImageResult, DynamicImage, GenericImageView};
 
@@ -31,11 +31,13 @@ impl<'a> TextureBuilder<'a> {
     }
 }
 
+// TODO: dont really want to let cloning/copying, temporary for WIP
+#[derive(Clone)]
 pub struct Texture {
-    texture_handle: gl::types::GLuint,
-    texture_offset: gl::types::GLuint,
-    image_data: DynamicImage,
-    image_path: String,
+    pub texture_handle: gl::types::GLuint,
+    pub texture_offset: gl::types::GLuint,
+    pub image_data: DynamicImage,
+    pub image_path: String,
 }
 
 impl fmt::Debug for Texture {

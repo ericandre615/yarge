@@ -233,7 +233,7 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     // as this needs to match the order of a sprites vertices
     // this order is more of a top left to bottom right
     for i in (0..vertices_len) {
-        let mut group: [i32; 6] = [
+        let group: [i32; 6] = [
             offset + 0,
             offset + 1,
             offset + 2,
