@@ -137,7 +137,7 @@ impl Sprite {
         })
     }
 
-    pub fn with_texture(texture: &Texture, props: SpriteProps) -> Result<Sprite, failure::Error> {
+    pub fn from_texture(texture: &Texture, props: SpriteProps) -> Result<Sprite, failure::Error> {
         let mut transform = SpriteTransform::default();
 
         transform.set_translation(props.pos);

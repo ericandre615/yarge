@@ -44,6 +44,12 @@ impl<'a> TextureManager<'a> {
         self.textures.clear();
     }
 
+    pub fn get(&self, key: &str) -> &Texture {
+        let texture = self.textures.get(key).unwrap();
+
+        texture
+    }
+
     //pub fn collection(self) -> &'a HashMap<String, Texture> {
     //    &self.textures
     //}

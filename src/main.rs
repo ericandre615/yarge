@@ -58,6 +58,18 @@ fn run() -> Result<(), failure::Error> {
     let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
+    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string(), 0)?;
+    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string(), 0)?;
+    texture_manager.create("ninja", "images/ninja-gaiden.gif");
+    //texture_manager.create("test", "images/test.png");
+    texture_manager.create("test_b", "images/test_b.png");
+    texture_manager.add("mario", mario_texture);
+    texture_manager.add("test", test_texture);
+    //let ninja_texture = texture_manager.get(ninja_t);
+
+    print!("Ninja_TEXTURE {:?}", texture_manager.get("ninja"));
+    print!("Mario_TEXTURE {:?}", texture_manager.get("mario"));
+
     renderer.set_clear_color(30, 30, 30, 1.0);
 
     let triangle = triangle::Triangle::new(&res)?;
@@ -119,25 +131,23 @@ fn run() -> Result<(), failure::Error> {
         }
     )?;
 
-    let mut some_sprite = Sprite::new(
-        &res,
-        "images/test.png".to_string(),
+    let mut some_sprite = Sprite::from_texture(
+        texture_manager.get("test"),
         SpriteProps {
             pos: (100.0, 20.0, 0.0),
             dim: (240, 240),
             color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
-            texture_slot: 1,
+            texture_slot: 12,
         },
     )?;
 
-    let mut some_other_sprite = Sprite::new(
-        &res,
-        "images/test_b.png".to_string(),
+    let mut some_other_sprite = Sprite::from_texture(
+        texture_manager.get("test_b"),
         SpriteProps {
             pos: (20.0, 280.0, 0.0),
             dim: (240, 240),
             color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
-            texture_slot: 2,
+            texture_slot: 14,
         },
     )?;
 
@@ -172,28 +182,31 @@ fn run() -> Result<(), failure::Error> {
 
     let mut is_look_at: bool = true;
 
-    //let mut vbs = Vec::new();
-    //for i in 0..20 {
-    //    let pos = (
-    //        10.0 + i as f32 + 10.0,
-    //        10.0 + i as f32 + 5.0,
-    //        0.0
-    //    );
-    //    let mut batch_sprite = Sprite::new(
-    //        &res,
-    //        "images/mario-sprite.png".to_string(),
-    //        SpriteProps {
-    //            pos: pos,
-    //            dim: (240, 240),
-    //            color: (255, 255, 255, 1.0),//(20, 30, 80, 0.5),
-    //            texture_slot: 4,
-    //        },
-    //    )?;
-    //    vbs.push(batch_sprite);
-    //}
-    let mut mario_as_sprite = Sprite::new(
-        &res,
-        "images/mario-sprite.png".to_string(),
+    let mut vbs = Vec::new();
+    let start_pos = (300.0, 300.0);
+    for i in 0..4 {
+        let pos = (
+            start_pos.0 + 200.0 + (i as f32 * 40.0),//+ 40.0 + (i * 20) as f32 + 200.0,
+            start_pos.1 - 100.0 - (i as f32 * 40.0),//- 20.0 - (i * 10) as f32 - 100.0,
+            0.0
+        );
+        let alpha = match i {
+            3 => 1.0,
+            _ => (80.0 - (i as f32 * 2.0)) / 255.0,
+        };
+        let mut batch_sprite = Sprite::from_texture(
+            texture_manager.get("ninja"),
+            SpriteProps {
+                pos: pos,
+                dim: (240, 240),
+                color: (255, 255, 255, alpha),//(20, 30, 80, 0.5),
+                texture_slot: 4,
+            },
+        )?;
+        vbs.push(batch_sprite);
+    }
+    let mut mario_as_sprite = Sprite::from_texture(
+        texture_manager.get("mario"),
         SpriteProps {
             pos: (10.0, 10.0, 0.0),
             dim: (210, 210),
@@ -202,11 +215,10 @@ fn run() -> Result<(), failure::Error> {
         },
     )?;
 
-    let mut ninja_as_sprite = Sprite::new(
-        &res,
-        "images/ninja-gaiden.gif".to_string(),
+    let mut ninja_as_sprite = Sprite::from_texture(
+        texture_manager.get("ninja"),
         SpriteProps {
-            pos: (40.0, 40.0, 0.0),
+            pos: (400.0, 40.0, 0.0),
             dim: (256, 256),
             color: (255, 255, 255, 1.0),
             texture_slot: 7
@@ -309,6 +321,10 @@ fn run() -> Result<(), failure::Error> {
         //renderer.clear(); // DEBUG: only
 
         renderer.begin_batch();
+
+        for s in &vbs {
+            renderer.submit(s);
+        }
 
         renderer.submit(&some_sprite);
         renderer.submit(&some_other_sprite);

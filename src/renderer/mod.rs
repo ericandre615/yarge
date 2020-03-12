@@ -111,7 +111,7 @@ impl<'s> Renderer2D<'s> {
         for sprite in &self.sprites {
             let sprite_vertices = sprite.get_vertices();
             let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
-            let sprite_tex_id = self.texture_slots.binary_search(&sprite_texture_handle).unwrap_or(0); //{
+            let sprite_tex_id = self.texture_slots.iter().position(|&id| id == sprite_texture_handle).unwrap_or(0); // should use a single reserved slot for blank white texture or a debug texture
 
             let mut batch_vertices: Vec<BatchVertex> = Vec::new();
             for vertex in sprite_vertices {
@@ -187,7 +187,7 @@ impl<'s> Renderer2D<'s> {
     pub fn render(&mut self, camera: &Camera) {
         //self.clear();
         let mvp = camera.get_projection() * camera.get_view();
-
+        println!("TEXTURE_SLOTS: {:?}", self.texture_slots);
         self.vao.bind();
 
         unsafe {
@@ -222,6 +222,7 @@ impl<'s> Renderer2D<'s> {
         self.vao.unbind();
 
         self.sprites = Vec::new();
+        self.texture_slots = Vec::new();
     }
 }
 
