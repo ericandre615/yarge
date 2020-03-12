@@ -3,8 +3,8 @@ use std::ffi::{CString, c_void};
 
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
-use crate::texture::{Texture};
-use crate::texture::transform::{TextureTransform};
+use crate::textures::texture::{Texture, TextureBuilder};
+use crate::textures::transform::{TextureTransform};
 use crate::camera::{Camera};
 
 #[derive(VertexAttribPointers)]
@@ -22,6 +22,18 @@ pub struct ImageProps {
     pub pos: (f32, f32),
     pub dim: (u32, u32),
     pub img_path: String,
+    pub texture_slot: u32,
+}
+
+impl Default for ImageProps {
+    fn default() -> Self {
+        ImageProps {
+            pos: (0.0, 0.0),
+            dim: (0, 0),
+            img_path: "".to_string(),
+            texture_slot: 1,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -43,10 +55,11 @@ pub struct Image {
     uniform_mvp: i32,
     uniform_color: i32,
     uniform_texcoord_transform: i32,
+    uniform_texsampler: i32,
     image: ImageProps,
     frame: (i32, i32),
     indicies: Vec<u32>,
-    texture: Texture,
+    pub texture: Texture, // TODO: most likley temporary for debugging
     texture_transform: TextureTransform,
     color: (f32, f32, f32, f32),
     model: glm::TMat4<f32>,
@@ -60,7 +73,10 @@ impl Image {
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("TexColor")?;
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
-        let texture = Texture::new(res, image.img_path.to_string())?;
+        let uniform_texsampler = program.get_uniform_location("TexSampler")?;
+        let texture = TextureBuilder::new(res, image.img_path.to_string())
+            .with_texture_slot(image.texture_slot)
+            .build()?;
         let (tw, th) = texture.get_dimensions();
         let (x, y) = image.pos;
         let (width, height) = image.dim;
@@ -115,6 +131,7 @@ impl Image {
             uniform_mvp,
             uniform_color,
             uniform_texcoord_transform,
+            uniform_texsampler,
             indicies,
             texture,
             texture_transform: TextureTransform::new(tw, th),
@@ -215,6 +232,7 @@ impl Image {
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);
         self.program.set_uniform_mat4f(self.uniform_texcoord_transform, &texcoord_transform);
+        self.program.set_uniform_1i(self.uniform_texsampler, self.texture.get_texture_offset() as i32);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
         self.vao.bind();
 

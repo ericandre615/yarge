@@ -23,6 +23,7 @@ impl From<io::Error> for Error {
     }
 }
 
+#[derive(Debug)]
 pub struct Resources {
     root_path: PathBuf,
 }

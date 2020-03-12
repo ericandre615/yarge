@@ -2,7 +2,7 @@
 
 precision mediump float;
 
-uniform sampler2D Image;
+uniform sampler2D TexSampler;
 uniform vec4 TexColor;
 
 in VS_OUTPUT {
@@ -12,5 +12,5 @@ in VS_OUTPUT {
 out vec4 Color;
 
 void main() {
-    gl_FragColor = texture2D(Image, IN.TexCoord) * vec4(TexColor.x, TexColor.y, TexColor.z, TexColor.w);
+    gl_FragColor = texture2D(TexSampler, IN.TexCoord) * vec4(TexColor.x, TexColor.y, TexColor.z, TexColor.w);
 }

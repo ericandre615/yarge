@@ -150,6 +150,48 @@ impl Program {
         Ok(location)
     }
 
+    pub fn set_uniform_1i(&self, location: i32, value: i32) {
+        unsafe {
+            gl::Uniform1i(location, value);
+        }
+    }
+
+    pub fn set_uniform_1f(&self, location: i32, value: f32) {
+        unsafe {
+            gl::Uniform1f(location, value);
+        }
+    }
+
+    pub fn set_uniform_1iv(&self, location: i32, value: &Vec<i32>) {
+        unsafe {
+            gl::Uniform1iv(
+                location,
+                value.len() as i32,
+                value.as_ptr() as *const i32
+            );
+        }
+    }
+
+    pub fn set_uniform_1fv(&self, location: i32, value: &Vec<f32>) {
+        unsafe {
+            gl::Uniform1fv(
+                location,
+                1,//value.len() as i32,
+                value.as_ptr() as *const f32
+            );
+        }
+    }
+
+    pub fn set_uniform_1uiv(&self, location: i32, value: &Vec<u32>) {
+        unsafe {
+            gl::Uniform1uiv(
+                location,
+                1,//value.len() as i32,
+                value.as_ptr() as *const u32
+            );
+        }
+    }
+
     pub fn set_uniform_2f(&self, location: i32, value: &glm::Vec2) {
         unsafe {
             gl::Uniform2f(location, value.x, value.y);
