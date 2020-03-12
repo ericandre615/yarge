@@ -329,6 +329,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nanoid"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "num"
 version = "0.1.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -556,6 +564,7 @@ dependencies = [
  "gl_vertex_derive 0.1.0",
  "image 0.22.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra-glm 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nanoid 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.32.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "vec-2-10-10-10 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 2.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -830,6 +839,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum memoffset 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "75189eb85871ea5c2e2c15abbdd541185f63b408415e5051f5cac122d8c774b9"
 "checksum nalgebra 0.17.3 (registry+https://github.com/rust-lang/crates.io-index)" = "be539bb5e751c248d25c21c850b69105809306f367c35bf1daa8724f0cb786df"
 "checksum nalgebra-glm 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "07a3be33aa9aa21ad8959e80cd7435c23c6fe0cc39d0af98bda9a4e486962df2"
+"checksum nanoid 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a6226bc4e142124cb44e309a37a04cd9bb10e740d8642855441d3b14808f635e"
 "checksum num 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)" = "4703ad64153382334aa8db57c637364c322d3372e097840c72000dabdcf6156e"
 "checksum num-complex 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "fcb0cf31fb3ff77e6d2a6ebd6800df7fdcd106f2ad89113c9130bcd07f93dffc"
 "checksum num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "eafd0b45c5537c3ba526f79d3e75120036502bebacbb3f3220914067ce39dbf2"

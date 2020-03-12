@@ -1,5 +1,5 @@
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
 pub struct f32_f32_f32 {
     pub d0: f32,
@@ -36,6 +36,44 @@ impl From<(f32, f32, f32)> for f32_f32_f32 {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(C, packed)]
+pub struct f32_f32_f32_f32 {
+    pub d0: f32,
+    pub d1: f32,
+    pub d2: f32,
+    pub d3: f32,
+}
+
+// <F28>http://nercury.github.io/rust/opengl/tutorial/2018/07/12/opengl-in-rust-from-scratch-11-vertex-data-types.html<F29>
+
+impl f32_f32_f32_f32 {
+    pub fn new(d0: f32, d1: f32, d2: f32, d3: f32) -> f32_f32_f32_f32 {
+        f32_f32_f32_f32 {
+            d0, d1, d2, d3
+        }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            4,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint, // (6 * std::mem::size_of::<f32>()) as gl::types::GLint,
+            offset as *const gl::types::GLvoid, // (3 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<(f32, f32, f32, f32)> for f32_f32_f32_f32 {
+    fn from(other: (f32, f32, f32, f32)) -> Self {
+        f32_f32_f32_f32::new(other.0, other.1, other.2, other.3)
+    }
+}
+
+#[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
 pub struct u2_u10_u10_u10_rev_float {
@@ -66,6 +104,36 @@ impl u2_u10_u10_u10_rev_float {
             stride as gl::types::GLint,
             offset as *const gl::types::GLvoid,
         );
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct u32_ {
+    pub d0: u32,
+}
+
+impl u32_ {
+    pub fn new(d0: u32) -> u32_ {
+        u32_ { d0 }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribIPointer(
+            location as gl::types::GLuint,
+            1,
+            gl::UNSIGNED_INT,
+            stride as gl::types::GLint,
+            offset as *const gl::types::GLvoid
+        );
+    }
+}
+
+impl From<u32> for u32_ {
+    fn from(other: u32) -> Self {
+        u32_::new(other)
     }
 }
 
@@ -179,7 +247,7 @@ impl From<Vec<f32>> for TexCoords {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
 pub struct f32_f32 {
     pub d0: f32,
@@ -212,4 +280,41 @@ impl From<(f32, f32)> for f32_f32 {
     }
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+#[repr(C, packed)]
+pub struct f32_ {
+    pub d0: f32,
+}
 
+impl f32_ {
+    pub fn new(d0: f32) -> f32_ {
+        f32_ {
+            d0
+        }
+    }
+
+    pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
+        gl::EnableVertexAttribArray(location as gl::types::GLuint);
+        gl::VertexAttribPointer(
+            location as gl::types::GLuint,
+            1,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as gl::types::GLint,
+            offset as *const gl::types::GLvoid,
+        );
+    }
+}
+
+impl From<f32> for f32_ {
+    fn from(other: f32) -> Self {
+        f32_::new(other)
+    }
+}
+
+impl From<u32> for f32_ {
+    fn from(other: u32) -> Self {
+        f32_::new(other as f32)
+    }
+}
