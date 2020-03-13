@@ -15,11 +15,13 @@ pub struct Texture {
 }
 
 impl fmt::Debug for Texture {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Texture Debug not implemented")
-        //match self {
-        //    &
-        //}
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        //write!(f, "Texture Debug not implemented")
+        f.debug_struct("Texture")
+            .field("texture_handle", &self.texture_handle)
+            .field("image_path", &self.image_path)
+            .field("image_data", &"DynamicImage".to_string())
+            .finish()
     }
 }
 

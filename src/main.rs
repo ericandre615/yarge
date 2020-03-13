@@ -11,19 +11,21 @@ use std::path::Path;
 pub mod helpers;
 pub mod resources;
 pub mod textures;
-mod triangle;
-mod rectangle;
-mod image;
-mod camera;
-mod renderer;
-mod debug;
-mod sprite;
+pub mod triangle;
+pub mod rectangle;
+pub mod image;
+pub mod camera;
+pub mod renderer;
+pub mod debug;
+pub mod sprite;
+pub mod tilemaps;
 
 use helpers::{data};
 use helpers::timer::{Timer};
 use resources::Resources;
 use camera::*;
 use sprite::*;
+use tilemaps::*;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -224,6 +226,10 @@ fn run() -> Result<(), failure::Error> {
             texture_slot: 7
         },
     )?;
+
+    let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
+
+    println!("TILEMAP_SET {:?}", tilemap);
 
     'main: loop {
         timer.tick();

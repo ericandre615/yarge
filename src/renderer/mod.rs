@@ -187,7 +187,7 @@ impl<'s> Renderer2D<'s> {
     pub fn render(&mut self, camera: &Camera) {
         //self.clear();
         let mvp = camera.get_projection() * camera.get_view();
-        println!("TEXTURE_SLOTS: {:?}", self.texture_slots);
+
         self.vao.bind();
 
         unsafe {
