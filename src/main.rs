@@ -58,8 +58,8 @@ fn run() -> Result<(), failure::Error> {
     let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
-    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string(), 0)?;
-    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string(), 0)?;
+    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string())?;
+    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string())?;
     texture_manager.create("ninja", "images/ninja-gaiden.gif");
     //texture_manager.create("test", "images/test.png");
     texture_manager.create("test_b", "images/test_b.png");

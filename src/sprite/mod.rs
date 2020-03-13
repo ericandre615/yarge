@@ -120,9 +120,7 @@ pub struct Sprite {
 
 impl Sprite {
     pub fn new(res: &Resources, image_path: String, props: SpriteProps) -> Result<Sprite, failure::Error> {
-        let texture = TextureBuilder::new(res, image_path.to_string())
-            .with_texture_slot(props.texture_slot)
-            .build()?;
+        let texture = Texture::new(res, image_path.to_string())?;
         let mut transform = SpriteTransform::default();
         let (px, py, pz) = props.pos;
 

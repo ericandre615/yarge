@@ -28,7 +28,7 @@ impl<'a> TextureManager<'a> {
     }
 
     pub fn create(&mut self, name: &'a str, image_path: &str) -> Result<&str, failure::Error> {
-        let texture = Texture::new(self.resource, image_path.to_string(), 0)?;
+        let texture = Texture::new(self.resource, image_path.to_string())?;
         self.textures.insert(name, texture);
 
         Ok(name)
