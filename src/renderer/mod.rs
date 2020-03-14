@@ -1,4 +1,5 @@
 pub mod layers;
+mod batch_shaders;
 
 use std::collections::HashMap;
 
@@ -7,6 +8,8 @@ use layers::*;
 use crate::helpers::{self, data, buffer, system};
 use crate::camera::*;
 use crate::sprite::{Sprite};
+
+use batch_shaders::{create_fragment_source, create_vertex_source};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -38,6 +41,9 @@ pub struct Renderer2D<'s> {
     uniforms: HashMap<String, i32>,
 }
 
+// Shader::from_raw(&str, ShaderKind);
+// Program::from_shaders(&shaders[..], name);//.map_err(||);
+
 impl<'s> Renderer2D<'s> {
     pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
         let default_clear_color = (255, 255, 255, 1.0);
@@ -45,7 +51,14 @@ impl<'s> Renderer2D<'s> {
         let max_sprites = 1000;
         let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
         let max_textures = system::SystemInfo::get_max_textures();
-        let program = helpers::Program::from_resource(res, "shaders/batch")?;
+        let vert_src = create_vertex_source();
+        let frag_src = create_fragment_source(max_textures);
+        let shaders = vec![
+            helpers::Shader::from_raw(&vert_src, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&frag_src, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/batch")
+            .expect("Failed to load Batch Renderer Shader Program");
         let uniform_textures = program.get_uniform_location("Textures")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let texture_slots = Vec::with_capacity(max_textures as usize);
