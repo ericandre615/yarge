@@ -6,6 +6,7 @@ use std::path::Path;
 
 use crate::resources::*;
 use crate::textures::texture::*;
+use crate::sprite::{Sprite, SpriteProps};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tile {
@@ -43,6 +44,10 @@ impl Tileset {
             tiles,
         })
     }
+
+    pub fn get_texture(&self) -> &Texture {
+        &self.texture
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -64,6 +69,8 @@ pub struct Tilemap {
     tile_height: u32,
     layers: Vec<TileLayer>,
     tileset: Tileset,
+    // TODO: temporary here because easier to access, might need ot work with layers in some way?
+    vertices: Vec<Sprite>,
 }
 
 impl Tilemap {
@@ -76,16 +83,73 @@ impl Tilemap {
         let tileset_str = serde_json::from_value(
             json["tilesets"]["filepath"].clone()
         )?;
-        //let tileset_path = Path::new(&tileset_str);
         let tileset = Tileset::new(res, tileset_str, tiles)?;
+        let layers: Vec<TileLayer> = serde_json::from_value(json["layers"].clone())?;
 
+        let vertices = generate_vertices_from_layer(&layers[0], &tileset);
         let tilemap = Tilemap {
             tile_width: serde_json::from_value(json["tilewidth"].clone())?,
             tile_height: serde_json::from_value(json["tileheight"].clone())?,
-            layers: serde_json::from_value(json["layers"].clone())?,
+            layers,
             tileset,
+            vertices,
         };
 
         Ok(tilemap)
     }
+
+    pub fn get_vertices(&self) -> &Vec<Sprite> {
+        &self.vertices
+    }
 }
+
+fn generate_vertices_from_layer(layer: &TileLayer, tileset: &Tileset) -> Vec<Sprite> {
+    // TODO: need to go through array of data, any value that can mapped to a tile image needs
+    // 4 vertex, position of x and y for vertex needs to be determined from total size map in pixels
+    // vs size of tiles (assume all tiles have to be the same size
+    // should we just make them all sprites?
+    // possibly use Sprite::from_texture? how will textures work as we haven't been using texture transforms
+    // for Sprites and we need to move the position of the texture for each sprite since the image is a single
+    // image of many tiles
+
+    // NOTE: tile.pos [x, y] is the position on our texture, we need to handle this somehow or
+    // maybe better is finding a way to easily define this or make it apar tof a "tile" through openGL?
+    // like a subimage/subtexture? not sure the best way to handle this. Maybe need a custom Spritesheet? or TextureAtlas?
+    // type that can handle all that?
+
+    let mut vertices = Vec::new();
+    let cols_len = layer.width / tileset.tile_width -1;
+    let mut col = 0;
+    let mut row = 0;
+
+    for tile_id in layer.data.iter() {
+        let tile = tileset.tiles.get(&String::from(tile_id.to_string()));
+        // maybe this is the position on the map/layer/world?
+        let tx = (tileset.tile_width * col) as f32;
+        let ty = (tileset.tile_height * row) as f32;
+
+        match tile {
+            Some(t) => vertices.push(
+                Sprite::from_texture(
+                    tileset.get_texture(),
+                    SpriteProps {
+                        pos: (tx, ty, 0.0),
+                        dim: (tileset.tile_width, tileset.tile_height),
+                        ..Default::default()
+                    }
+                ).unwrap()
+            ),
+            None => (),
+        }
+
+        if col == cols_len {
+            col = 0;
+            row = row + 1;
+        } else {
+            col += 1;
+        }
+    }
+
+    vertices
+}
+

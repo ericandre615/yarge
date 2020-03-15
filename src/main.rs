@@ -229,7 +229,7 @@ fn run() -> Result<(), failure::Error> {
 
     let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
 
-    println!("TILEMAP_SET {:?}", tilemap);
+    //println!("TILEMAP_SET {:?}", tilemap);
 
     'main: loop {
         timer.tick();
@@ -336,6 +336,10 @@ fn run() -> Result<(), failure::Error> {
         renderer.submit(&some_other_sprite);
         renderer.submit(&mario_as_sprite);
         renderer.submit(&ninja_as_sprite);
+
+        for ts in tilemap.get_vertices() {
+            renderer.submit(&ts);
+        }
 
         renderer.end_batch();
         renderer.render(&camera);

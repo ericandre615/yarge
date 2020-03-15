@@ -41,7 +41,7 @@ impl Default for SpriteProps {
         SpriteProps {
             pos: (0.0, 0.0, 0.0),
             dim: (0, 0),
-            color: (0, 0, 0, 0.0),
+            color: (255, 255, 255, 1.0),
             texture_slot: 0,
         }
     }
