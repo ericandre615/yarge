@@ -1,6 +1,7 @@
 use crate::helpers::{data};
 use crate::resources::*;
-use crate::textures::texture::*;
+use crate::textures::texture::{Texture};
+use crate::textures::transform::{TextureTransform};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -12,6 +13,10 @@ pub struct SpriteVertex {
     tex: data::f32_f32,
     #[location = 2]
     color: data::f32_f32_f32_f32,
+    #[location = 3]
+    tex_translate: data::f32_f32_f32,
+    #[location = 4]
+    tex_scale: data::f32_f32_f32,
 }
 
 impl SpriteVertex {
@@ -25,6 +30,14 @@ impl SpriteVertex {
 
     pub fn get_color(&self) -> data::f32_f32_f32_f32 {
         self.color
+    }
+
+    pub fn get_texture_translate(&self) -> data::f32_f32_f32 {
+        self.tex_translate
+    }
+
+    pub fn get_texture_scale(&self) -> data::f32_f32_f32 {
+        self.tex_scale
     }
 }
 
@@ -114,6 +127,7 @@ pub struct Sprite {
     transform: SpriteTransform,
     vertices: Vec<SpriteVertex>,
     pub texture: Texture,
+    texture_transform: TextureTransform,
     image_path: String,
     props: SpriteProps,
 }
@@ -121,15 +135,18 @@ pub struct Sprite {
 impl Sprite {
     pub fn new(res: &Resources, image_path: String, props: SpriteProps) -> Result<Sprite, failure::Error> {
         let texture = Texture::new(res, image_path.to_string())?;
+        let (tw, th) = texture.get_dimensions();
         let mut transform = SpriteTransform::default();
+        let texture_transform = TextureTransform::new(tw, th);
         let (px, py, pz) = props.pos;
 
         transform.set_translation((px, py, pz));
 
         Ok(Sprite {
-            vertices: update_vertices(&texture, &props),
+            vertices: update_vertices(&texture, &props, &texture_transform),
             texture,
             transform,
+            texture_transform,
             image_path,
             props,
         })
@@ -137,13 +154,16 @@ impl Sprite {
 
     pub fn from_texture(texture: &Texture, props: SpriteProps) -> Result<Sprite, failure::Error> {
         let mut transform = SpriteTransform::default();
+        let (tw, th) = texture.get_dimensions();
+        let texture_transform = TextureTransform::new(tw, th);
 
         transform.set_translation(props.pos);
 
         Ok(Sprite {
-            vertices: update_vertices(&texture, &props),
+            vertices: update_vertices(&texture, &props, &texture_transform),
             texture: texture.clone(),//TODO: how to handle only wantin ga ref if using an existing texture vs creating a sprite that creates it's own texture???
             transform,
+            texture_transform,
             image_path: texture.image_path.to_string(), // TODO: need to probably use &strs
             props,
         })
@@ -153,12 +173,24 @@ impl Sprite {
         self.transform = transform;
     }
 
+    pub fn set_texture_scale(&mut self, scale: (f32, f32)) {
+        let (sx, sy) = scale;
+        self.texture_transform.set_scale(sx, sy);
+        self.vertices = update_vertices(&self.texture, &self.props, &self.texture_transform);
+    }
+
+    pub fn set_frame(&mut self, pos: (f32, f32)) {
+        let (x, y) = pos;
+        self.texture_transform.set_frame(x, y);
+        self.vertices = update_vertices(&self.texture, &self.props, &self.texture_transform);
+    }
+
     pub fn get_vertices(&self) -> &Vec<SpriteVertex> {
         &self.vertices
     }
 }
 
-fn update_vertices(texture: &Texture, props: &SpriteProps) -> Vec<SpriteVertex> {
+fn update_vertices(texture: &Texture, props: &SpriteProps, texture_transform: &TextureTransform) -> Vec<SpriteVertex> {
     let (tw, th) = texture.get_dimensions();
     let (x, y, _) = props.pos; // TODO: exclude z for now
     let (width, height) = props.dim;
@@ -166,13 +198,15 @@ fn update_vertices(texture: &Texture, props: &SpriteProps) -> Vec<SpriteVertex> 
     let y2 = y + (height as f32);
     let tx = width as f32 / tw as f32;
     let ty = height as f32 / th as f32;
+    let tex_translate = texture_transform.get_raw_translate();
+    let tex_scale = texture_transform.get_raw_scale();
     let color = normalize_color(props.color);
     let vertices: Vec<SpriteVertex> = vec![
-       SpriteVertex { pos: (x, y, 0.0).into(), tex: (0.0, 0.0).into(), color: color.into() },
-       SpriteVertex { pos: (x2, y, 0.0).into(), tex: (tx, 0.0).into(), color: color.into() },
-       SpriteVertex { pos: (x, y2, 0.0).into(), tex: (0.0, ty).into(), color: color.into() },
+       SpriteVertex { pos: (x, y, 0.0).into(), tex: (0.0, 0.0).into(), color: color.into(), tex_translate: tex_translate.into(), tex_scale: tex_scale.into() },
+       SpriteVertex { pos: (x2, y, 0.0).into(), tex: (tx, 0.0).into(), color: color.into(), tex_translate: tex_translate.into(), tex_scale: tex_scale.into() },
+       SpriteVertex { pos: (x, y2, 0.0).into(), tex: (0.0, ty).into(), color: color.into(), tex_translate: tex_translate.into(), tex_scale: tex_scale.into() },
        // second triangle
-       SpriteVertex { pos: (x2, y2, 0.0).into(), tex: (tx, ty).into(), color: color.into() }
+       SpriteVertex { pos: (x2, y2, 0.0).into(), tex: (tx, ty).into(), color: color.into(), tex_translate: tex_translate.into(), tex_scale: tex_scale.into() }
     ];
 
     vertices

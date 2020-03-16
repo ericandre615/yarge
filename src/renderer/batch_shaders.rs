@@ -56,6 +56,8 @@ layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec4 TexColor;
 layout (location = 3) in float TexIndex;
+layout (location = 4) in vec3 TexTranslate;
+layout (location = 5) in vec3 TexScale;
 
 // uniform mat4 TexCoordTransform;
 uniform mat4 MVP;
@@ -68,11 +70,15 @@ out VS_OUTPUT {
 
 void main() {
     gl_Position = MVP * vec4(Position, 1.0);
-
+    // this works, but is very weird and manual
+    mat4 TexTransform = mat4(
+        vec4( TexScale.x, 0.0, 0.0, 0.0),
+        vec4( 0.0, TexScale.y, 0.0, 0.0),
+        vec4( 0.0, 0.0, TexScale.z, 0.0),
+        vec4( TexTranslate,         1.0) );
     OUT.TexColor = TexColor;
     OUT.TexIndex = TexIndex; //int(TexIndex -0.5);
-    //OUT.TexCoord = vec2(TexCoordTransform * vec4(TexCoord, 1.0, 1.0));
-    OUT.TexCoord = TexCoord;
+    OUT.TexCoord = vec2(TexTransform * vec4(TexCoord, 1.0, 1.0));
 }"#;
 
     src.to_string()

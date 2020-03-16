@@ -35,6 +35,12 @@ impl From<(f32, f32, f32)> for f32_f32_f32 {
     }
 }
 
+impl From<glm::Vec3> for f32_f32_f32 {
+    fn from(other: glm::Vec3) -> Self {
+        f32_f32_f32::new(other.x, other.y, other.z)
+    }
+}
+
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]

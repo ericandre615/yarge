@@ -129,16 +129,19 @@ fn generate_vertices_from_layer(layer: &TileLayer, tileset: &Tileset) -> Vec<Spr
         let ty = (tileset.tile_height * row) as f32;
 
         match tile {
-            Some(t) => vertices.push(
-                Sprite::from_texture(
+            Some(t) => {
+                let mut sprite_tile = Sprite::from_texture(
                     tileset.get_texture(),
                     SpriteProps {
                         pos: (tx, ty, 0.0),
                         dim: (tileset.tile_width, tileset.tile_height),
                         ..Default::default()
                     }
-                ).unwrap()
-            ),
+                ).unwrap();
+                let (tx, ty) = t.pos;
+                sprite_tile.set_frame((tx as f32, ty as f32));
+                vertices.push(sprite_tile);
+            },
             None => (),
         }
 

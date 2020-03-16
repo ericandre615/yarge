@@ -23,6 +23,10 @@ pub struct BatchVertex {
     color: data::f32_f32_f32_f32,
     #[location=3]
     tex_id: data::f32_,
+    #[location=4]
+    tex_translate: data::f32_f32_f32,
+    #[location=5]
+    tex_scale: data::f32_f32_f32,
 }
 
 pub struct Renderer2D<'s> {
@@ -134,6 +138,8 @@ impl<'s> Renderer2D<'s> {
                         tex: vertex.get_tex(),
                         color: vertex.get_color(),
                         tex_id: (sprite_tex_id as u32).into(),
+                        tex_translate: vertex.get_texture_translate(),
+                        tex_scale: vertex.get_texture_scale(),
                     }
                 );
             };

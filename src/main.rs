@@ -217,6 +217,9 @@ fn run() -> Result<(), failure::Error> {
         },
     )?;
 
+    mario_as_sprite.set_texture_scale((scale_ix, scale_iy));
+    //mario_as_sprite.set_frame((0.0, 210.0));
+
     let mut ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
@@ -228,8 +231,6 @@ fn run() -> Result<(), failure::Error> {
     )?;
 
     let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
-
-    //println!("TILEMAP_SET {:?}", tilemap);
 
     'main: loop {
         timer.tick();
