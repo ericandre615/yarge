@@ -291,8 +291,7 @@ impl Shader {
     }
 
     pub fn from_raw(source: &str, shader_kind: gl::types::GLenum) -> Result<Shader, Error> {
-        let c_source;
-        unsafe { c_source = CString::new(source).unwrap(); };
+        let c_source = CString::new(source).unwrap();
 
         Shader::from_source(&c_source, shader_kind).map_err(|message| Error::CompileError {
             name: format!("Raw Shader Source: {}", shader_kind),
