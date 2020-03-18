@@ -11,19 +11,21 @@ use std::path::Path;
 pub mod helpers;
 pub mod resources;
 pub mod textures;
-mod triangle;
-mod rectangle;
-mod image;
-mod camera;
-mod renderer;
-mod debug;
-mod sprite;
+pub mod triangle;
+pub mod rectangle;
+pub mod image;
+pub mod camera;
+pub mod renderer;
+pub mod debug;
+pub mod sprite;
+pub mod tilemaps;
 
 use helpers::{data};
 use helpers::timer::{Timer};
 use resources::Resources;
 use camera::*;
 use sprite::*;
+use tilemaps::*;
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -58,13 +60,15 @@ fn run() -> Result<(), failure::Error> {
     let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
-    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string(), 0)?;
-    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string(), 0)?;
+    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string())?;
+    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string())?;
+    let spritesheet_texture = textures::texture::Texture::new(&res, "images/ninja-gaiden-spritesheet.png".to_string())?;
     texture_manager.create("ninja", "images/ninja-gaiden.gif");
     //texture_manager.create("test", "images/test.png");
     texture_manager.create("test_b", "images/test_b.png");
     texture_manager.add("mario", mario_texture);
     texture_manager.add("test", test_texture);
+    texture_manager.add("ninja_spritesheet", spritesheet_texture);
     //let ninja_texture = texture_manager.get(ninja_t);
 
     print!("Ninja_TEXTURE {:?}", texture_manager.get("ninja"));
@@ -131,6 +135,15 @@ fn run() -> Result<(), failure::Error> {
         }
     )?;
 
+    let mut spritesheet_as_sprite = Sprite::from_texture(
+        texture_manager.get("ninja_spritesheet"),
+        SpriteProps {
+            pos: (220.0, 200.0, 0.0),
+            dim: (256, 256),
+            ..Default::default()
+        }
+    )?;
+
     let mut some_sprite = Sprite::from_texture(
         texture_manager.get("test"),
         SpriteProps {
@@ -162,6 +175,7 @@ fn run() -> Result<(), failure::Error> {
     image3.set_texture_scale(0.75, 0.75);
     image3.set_frame((-40, 40));
     spritesheet.set_frame((256, 0));
+    spritesheet_as_sprite.set_frame((246.0, 0.0));
 
     let sprite_frames = [
         (0, 0),(0, 0),(0, 0),(0, 0),
@@ -215,6 +229,9 @@ fn run() -> Result<(), failure::Error> {
         },
     )?;
 
+    mario_as_sprite.set_texture_scale((scale_ix, scale_iy));
+    //mario_as_sprite.set_frame((0.0, 210.0));
+
     let mut ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
@@ -224,6 +241,8 @@ fn run() -> Result<(), failure::Error> {
             texture_slot: 7
         },
     )?;
+
+    let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
 
     'main: loop {
         timer.tick();
@@ -314,12 +333,14 @@ fn run() -> Result<(), failure::Error> {
 
         spritesheet.set_frame(sprite_frames[i]);
 
+        // TODO: wamp wamp wamp, what to do? need to update sprites...
+        spritesheet_as_sprite.set_frame((sprite_frames[i].0 as f32, sprite_frames[i].1 as f32));
+
         i += 1;
 
         if i >= sprite_frames.len() - 1 { i = 0; }
 
         //renderer.clear(); // DEBUG: only
-
         renderer.begin_batch();
 
         for s in &vbs {
@@ -330,6 +351,11 @@ fn run() -> Result<(), failure::Error> {
         renderer.submit(&some_other_sprite);
         renderer.submit(&mario_as_sprite);
         renderer.submit(&ninja_as_sprite);
+        renderer.submit(&spritesheet_as_sprite);
+
+        for ts in tilemap.get_vertices() {
+            renderer.submit(&ts);
+        }
 
         renderer.end_batch();
         renderer.render(&camera);
