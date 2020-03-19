@@ -1,7 +1,7 @@
-use crate::helpers::buffer::{FrameBuffer, ArrayBuffer, VertexBuffer};
+use crate::helpers::buffer::{FrameBuffer, ArrayBuffer, VertexArray};
 use crate::resources::{Resources};
-use crate::helpers::shaders{Program};
-use crate::helpers::data;
+use crate::helpers::{self, data};
+use crate::camera::{Camera};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -17,16 +17,17 @@ pub struct RenderVertex {
 pub struct RenderTarget {
     vbo: ArrayBuffer,
     vao: VertexArray,
-    pub program: Option<Program>,
+    pub program: helpers::Program,
     pub frame_buffer: FrameBuffer,
     vertices: Vec<RenderVertex>,
 }
 
 impl RenderTarget {
-    pub fn new(screen_width: u32, screen_height: u32) -> RenderTarget {
-        let frame_buffer = FrameBuffer::new(screen_width, screen_height);
+    pub fn new(screen_width: u32, screen_height: u32) -> Result<RenderTarget, failure::Error> {
+        let default_program = default_program()?;
+        let frame_buffer = FrameBuffer::new(screen_width, screen_height)?;
         let vbo = ArrayBuffer::new();
-        let vao = VertexBuffer::new();
+        let vao = VertexArray::new();
 
         let vertices = vec![
             RenderVertex { pos: (-1.0, 1.0).into(), uv: (0.0, 1.0).into() },
@@ -50,28 +51,64 @@ impl RenderTarget {
         vbo.unbind();
         vao.unbind();
 
-        RenderTarget {
+        Ok(RenderTarget {
             frame_buffer,
             vbo,
             vao,
             vertices,
-            program: None,
+            program: default_program,
+        })
+    }
+
+    pub fn bind(&self) {
+        self.frame_buffer.bind();
+    }
+
+    pub fn unbind(&self) {
+        self.frame_buffer.unbind();
+    }
+
+    pub fn set_program(&mut self, program: helpers::Program) {
+        self.program = program;
+    }
+
+    pub fn update_fbo_size(&mut self, width: u32, height: u32) {
+        self.frame_buffer.texture.set_size(width, height);
+    }
+
+    pub fn render(&mut self, camera: &Camera) {
+        //let program = match self.program {
+        //    Some(prg) => prg,
+        //    None => default_program(),
+        //};
+        let mvp = camera.get_projection() * camera.get_view();
+
+        //unsafe {
+        //    gl::Clear(gl::COLOR_BUFFER_BIT);
+        //}
+
+        self.program.set_used();
+        //let uniform_mvp = self.program.get_uniform_location("MVP")
+        //    .expect("RenderTarget Program failed to find uniform");
+        //self.program.set_uniform_mat4f(uniform_mvp, &mvp);
+        // bind to fbo color texture?
+
+        self.vao.bind();
+        self.frame_buffer.texture.bind();
+
+        unsafe {
+            gl::DrawArrays(
+                gl::TRIANGLES,
+                0,
+                6
+            );
         }
-    }
 
-    pub fn set_program(&self mut, program: Program) {
-        self.program = Some(program);
-    }
-
-    pub fn render(&mut self) {
-        let program = match self.program {
-            Some(prg) => prg,
-            None => default_program(),
-        };
+        self.vao.unbind();
     }
 }
 
-fn default_program() -> Program {
+fn default_program() -> Result<helpers::Program, failure::Error> {
     let vert_src = r#"
         #version 330 core
 
@@ -101,8 +138,7 @@ fn default_program() -> Program {
         out vec4 Color;
 
         void main() {
-
-            Color = texture(RenderTexture, UV);
+            Color = texture(RenderTexture, IN.UV);
         }
     "#;
 
@@ -113,5 +149,5 @@ fn default_program() -> Program {
     let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/render_target")
         .expect("Failed to load FB RenderTarget Shader Program");
 
-    program
+    Ok(program)
 }

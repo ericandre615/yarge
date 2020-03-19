@@ -235,7 +235,7 @@ fn run() -> Result<(), failure::Error> {
     let mut ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
-            pos: (400.0, 40.0, 0.0),
+            pos: (400.0, 40., 0.0),
             dim: (256, 256),
             color: (255, 255, 255, 1.0),
             texture_slot: 7
@@ -341,6 +341,7 @@ fn run() -> Result<(), failure::Error> {
         if i >= sprite_frames.len() - 1 { i = 0; }
 
         //renderer.clear(); // DEBUG: only
+        renderer.begin_scene(&camera);
         renderer.begin_batch();
 
         for s in &vbs {
@@ -359,6 +360,7 @@ fn run() -> Result<(), failure::Error> {
 
         renderer.end_batch();
         renderer.render(&camera);
+        renderer.end_scene();
 
         window.gl_swap_window();
     }

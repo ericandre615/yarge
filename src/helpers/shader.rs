@@ -48,6 +48,7 @@ pub enum Error {
     },
 }
 
+#[derive(Debug)]
 pub struct Program {
     id: gl::types::GLuint,
     name: String,

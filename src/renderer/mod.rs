@@ -1,5 +1,6 @@
 pub mod layers;
 mod batch_shaders;
+mod render_target;
 
 use std::collections::HashMap;
 
@@ -8,7 +9,7 @@ use layers::*;
 use crate::helpers::{self, data, buffer, system};
 use crate::camera::*;
 use crate::sprite::{Sprite};
-
+use render_target::{RenderTarget};
 use batch_shaders::{create_fragment_source, create_vertex_source};
 
 #[derive(VertexAttribPointers)]
@@ -43,6 +44,7 @@ pub struct Renderer2D {
     texture_slots: Vec<i32>,
     uniforms: HashMap<String, i32>,
     sprite_count: usize,
+    render_target: Option<RenderTarget>,
 }
 
 impl Renderer2D {
@@ -103,13 +105,18 @@ impl Renderer2D {
                 ("textures".to_owned(), uniform_textures),
                 ("mvp".to_owned(), uniform_mvp),
             ].into_iter().collect(),
+            render_target: None,
         })
     }
 
-    pub fn begin_scene(camera: &Camera) {
+    pub fn begin_scene(&mut self, camera: &Camera) {
+        let (width, height) = camera.get_dimensions();
+        self.render_target = Some(
+            RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+        );
     }
 
-    pub fn end_scene() {
+    pub fn end_scene(&self) {
 
     }
 
@@ -190,8 +197,21 @@ impl Renderer2D {
 
     pub fn render(&mut self, camera: &Camera) {
         //self.clear();
+        let (cam_width, cam_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
 
+        // TODO: check if render_target is Some(RenderTarget)
+        if let Some(render_target) = &mut self.render_target {
+            render_target.update_fbo_size(cam_width as u32, cam_height as u32);
+            render_target.bind();
+
+            unsafe {
+                // since we are bound to render_target fbo we are only clearing that
+                // anything already on screen fb wil not be clear
+                gl::Clear(gl::COLOR_BUFFER_BIT);
+            }
+        }
+        // now need to fbo.bind();
         self.vao.bind();
 
         unsafe {
@@ -224,8 +244,23 @@ impl Renderer2D {
         }
 
         self.vao.unbind();
+        // possibly all this stuff is in render_target.render?
+        // now need to fbo.unbind()
+        // start Pass 2
+        // glClear(gl::COLOR_BUFFER_BIT)
+        // use render/fbo program
+        // bindTexture to render_target/fbo texture
+        // possibly set uniforms?
+        // bind vao of render_target/fbo
+        // gl::DrawArrays(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0);
+        if let Some(render_target) = &mut self.render_target {
+            render_target.unbind();
+            unsafe {
+                gl::Clear(gl::COLOR_BUFFER_BIT);
+            }
+            render_target.render(&camera);
+        }
 
-        //self.sprites = Vec::new();
         self.texture_slots = Vec::new();
     }
 }
