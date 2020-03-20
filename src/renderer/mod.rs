@@ -1,5 +1,6 @@
 pub mod layers;
 mod batch_shaders;
+mod render_target;
 
 use std::collections::HashMap;
 
@@ -8,7 +9,7 @@ use layers::*;
 use crate::helpers::{self, data, buffer, system};
 use crate::camera::*;
 use crate::sprite::{Sprite};
-
+use render_target::{RenderTarget};
 use batch_shaders::{create_fragment_source, create_vertex_source};
 
 #[derive(VertexAttribPointers)]
@@ -37,17 +38,18 @@ pub struct Renderer2D {
     vbo: buffer::DynamicArrayBuffer,
     vao: buffer::VertexArray,
     ibo: buffer::ElementArrayBuffer,
-    clear_color: (u8, u8, u8, f32),
+    clear_color: (f32, f32, f32, f32),
     max_textures: gl::types::GLint,
     max_sprites: usize,
     texture_slots: Vec<i32>,
     uniforms: HashMap<String, i32>,
     sprite_count: usize,
+    render_target: Option<RenderTarget>,
 }
 
 impl Renderer2D {
     pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
-        let default_clear_color = (255, 255, 255, 1.0);
+        let default_clear_color = (1.0, 1.0, 1.0, 1.0);
         let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 4000) as gl::types::GLsizeiptr;
         let max_sprites = 1000;
         let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
@@ -103,13 +105,42 @@ impl Renderer2D {
                 ("textures".to_owned(), uniform_textures),
                 ("mvp".to_owned(), uniform_mvp),
             ].into_iter().collect(),
+            render_target: None,
         })
     }
 
-    pub fn begin_scene(camera: &Camera) {
+    pub fn begin_scene(&mut self, camera: &Camera) {
+        let (width, height) = camera.get_dimensions();
+        //self.render_target = Some(
+        //    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+        //);
+
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+                );
+            },
+        }
     }
 
-    pub fn end_scene() {
+    pub fn set_ppe_program(&mut self, program: &helpers::Program) {
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(10, 10).expect("Could not create RenderTarget")
+                );
+            },
+        }
+
+        if let Some(render_target) = &mut self.render_target {
+            render_target.set_program(program.clone()); // not sure about cloning programs
+        }
+    }
+
+    pub fn end_scene(&self) {
 
     }
 
@@ -177,6 +208,8 @@ impl Renderer2D {
         let gf = g as f32 / 255.0;
         let bf = b as f32 / 255.0;
 
+        self.clear_color = (rf, gf, bf, a);
+
         unsafe {
             gl::ClearColor(rf, gf, bf, a);
         }
@@ -189,8 +222,21 @@ impl Renderer2D {
     }
 
     pub fn render(&mut self, camera: &Camera) {
-        //self.clear();
+        let (cam_width, cam_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
+
+        if let Some(render_target) = &mut self.render_target {
+            render_target.update_fbo_size(cam_width as u32, cam_height as u32);
+            render_target.bind();
+            let (r, g, b, a) = self.clear_color;
+
+            unsafe {
+                // clear the fbo screen, set the default screen color back to what it was
+                gl::ClearColor(0.0, 0.0, 0.0, 0.0);
+                gl::Clear(gl::COLOR_BUFFER_BIT);
+                gl::ClearColor(r, g, b, a);
+            }
+        }
 
         self.vao.bind();
 
@@ -225,7 +271,14 @@ impl Renderer2D {
 
         self.vao.unbind();
 
-        //self.sprites = Vec::new();
+        if let Some(render_target) = &mut self.render_target {
+            render_target.unbind();
+            //unsafe {
+            //    gl::Clear(gl::COLOR_BUFFER_BIT);
+            //}
+            render_target.render();
+        }
+
         self.texture_slots = Vec::new();
     }
 }

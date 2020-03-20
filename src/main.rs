@@ -45,7 +45,7 @@ fn run() -> Result<(), failure::Error> {
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("Demo", WIDTH, HEIGHT)
+        .window("Yarge", WIDTH, HEIGHT)
         .opengl()
         .resizable()
         .build()
@@ -75,6 +75,17 @@ fn run() -> Result<(), failure::Error> {
     print!("Mario_TEXTURE {:?}", texture_manager.get("mario"));
 
     renderer.set_clear_color(30, 30, 30, 1.0);
+
+    // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
+    // a very primitively implemented light
+    let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
+    renderer.set_ppe_program(&lighting_program);
+
+    lighting_program.set_used();
+    let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
+    let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
+    lighting_program.set_uniform_1f(uniform_intensity, 0.45);
+    lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -206,7 +217,7 @@ fn run() -> Result<(), failure::Error> {
         );
         let alpha = match i {
             3 => 1.0,
-            _ => (80.0 - (i as f32 * 2.0)) / 255.0,
+            _ => (90.0 - (i as f32 * 2.0)) / 255.0,
         };
         let mut batch_sprite = Sprite::from_texture(
             texture_manager.get("ninja"),
@@ -235,7 +246,7 @@ fn run() -> Result<(), failure::Error> {
     let mut ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
-            pos: (400.0, 40.0, 0.0),
+            pos: (400.0, 40., 0.0),
             dim: (256, 256),
             color: (255, 255, 255, 1.0),
             texture_slot: 7
@@ -333,14 +344,13 @@ fn run() -> Result<(), failure::Error> {
 
         spritesheet.set_frame(sprite_frames[i]);
 
-        // TODO: wamp wamp wamp, what to do? need to update sprites...
         spritesheet_as_sprite.set_frame((sprite_frames[i].0 as f32, sprite_frames[i].1 as f32));
 
         i += 1;
 
         if i >= sprite_frames.len() - 1 { i = 0; }
 
-        //renderer.clear(); // DEBUG: only
+        renderer.begin_scene(&camera);
         renderer.begin_batch();
 
         for s in &vbs {
@@ -359,6 +369,7 @@ fn run() -> Result<(), failure::Error> {
 
         renderer.end_batch();
         renderer.render(&camera);
+        renderer.end_scene();
 
         window.gl_swap_window();
     }

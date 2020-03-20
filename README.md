@@ -13,8 +13,11 @@ before diving deeper into using other games engines (although I have done some b
 - Basic Delta Timer
 - Basic Orthographic Camera for 2D
     - Supports basic panning (no zooming)
+- Basic Sprite animations through Texture atlas/sprite sheets
+- Basic Tilemap support loading from json
+- Batch Rendering multiple sprites with one draw call (or currently one per about 1000 sprites)
+- FrameBuffer for off screen rendering and full screen post-processing effects (currently implemented as RenderTarget in batch renderer)
 #### Would like to have
  - Render text with fonts (`rusttype`?)
- - Sprite animations through Texture atlas/sprite sheets
 
 All discussions, advice, ideas, etc welcome!

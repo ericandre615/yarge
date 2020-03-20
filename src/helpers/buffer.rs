@@ -2,10 +2,12 @@ pub trait BufferType {
     const BUFFER_TYPE: gl::types::GLuint;
 }
 
+#[derive(Debug)]
 pub struct BufferTypeArray;
 impl BufferType for BufferTypeArray {
     const BUFFER_TYPE: gl::types::GLuint = gl::ARRAY_BUFFER;
 }
+#[derive(Debug)]
 pub struct BufferTypeElementArray;
 impl BufferType for BufferTypeElementArray {
     const BUFFER_TYPE: gl::types::GLuint = gl::ELEMENT_ARRAY_BUFFER;
@@ -15,6 +17,7 @@ pub type ElementArrayBuffer = Buffer<BufferTypeElementArray>;
 pub type DynamicArrayBuffer = DynamicBuffer<BufferTypeArray>;
 pub type DynamicElementArrayBuffer = DynamicBuffer<BufferTypeElementArray>;
 
+#[derive(Debug)]
 pub struct Buffer<B> where B: BufferType {
     vbo: gl::types::GLuint,
     _marker: ::std::marker::PhantomData<B>,
@@ -67,6 +70,7 @@ impl<B> Drop for Buffer<B> where B: BufferType {
 }
 
 //let default_max_buffer_size = (1000 * ::std::mem::size_of::<T>()) as gl::types::GLsizeiptr;
+#[derive(Debug)]
 pub struct DynamicBuffer<B> where B: BufferType {
     vbo: gl::types::GLuint,
     max_buffer_size: gl::types::GLsizeiptr,
@@ -143,6 +147,7 @@ impl<B> Drop for DynamicBuffer<B> where B: BufferType {
     }
 }
 
+#[derive(Debug)]
 pub struct VertexArray {
     vao: gl::types::GLuint,
 }
@@ -178,3 +183,166 @@ impl Drop for VertexArray {
         }
     }
 }
+
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display="Failed to create FrameBuffer")]
+    FailedToCreateFrameBuffer
+}
+
+#[derive(Debug)]
+pub struct FrameBuffer {
+    fbo: gl::types::GLuint,
+    pub texture: FrameBufferTexture,
+}
+
+impl FrameBuffer {
+    pub fn new(screen_width: u32, screen_height: u32) -> Result<FrameBuffer, Error> {
+        let mut fbo: gl::types::GLuint =  0;
+        let texture = FrameBufferTexture::new(screen_width, screen_height);
+
+        unsafe {
+            gl::GenFramebuffers(1, &mut fbo);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+            gl::FramebufferTexture2D(
+                gl::FRAMEBUFFER,
+                gl::COLOR_ATTACHMENT0,
+                gl::TEXTURE_2D,
+                texture.get_texture_handle(),
+                0
+            );
+            // TODO: might need this later? for depth-testing/3D
+            // but also probably want it to be a RenderBuffer or FrameBuffer<RenderBuffer>
+            //gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT, gl::RENDERBUFFER, rbo_depth);
+
+            if gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE {
+                return Err(Error::FailedToCreateFrameBuffer);
+            }
+
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0)
+        }
+
+        Ok(FrameBuffer {
+            fbo,
+            texture,
+        })
+    }
+
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
+        }
+    }
+
+    pub fn unbind(&self) {
+        unsafe {
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+        }
+    }
+}
+
+impl Drop for FrameBuffer {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteFramebuffers(1, &mut self.fbo);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct FrameBufferTexture {
+    texture_handle: gl::types::GLuint,
+}
+
+impl FrameBufferTexture {
+    pub fn new(screen_width: u32, screen_height: u32) -> FrameBufferTexture {
+        let texture_handle = create_fb_texture(screen_width, screen_height);
+
+        FrameBufferTexture {
+            texture_handle,
+        }
+    }
+
+    pub fn get_texture_handle(&self) -> gl::types::GLuint {
+        self.texture_handle
+    }
+
+    pub fn set_size(&self, width: u32, height: u32) {
+        self.bind();
+        unsafe {
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                width as i32,
+                height as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                std::ptr::null() //NULL
+            );
+        }
+        self.unbind();
+    }
+
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
+        }
+    }
+
+    pub fn bind_to_unit(&self, slot: u32) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + slot as gl::types::GLuint);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
+        }
+    }
+
+    pub fn unbind(&self) {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+    }
+}
+
+// TODO: this is very much the same as in Texture minus image and a couple of different options
+// most likely will move to use Texture, but be able to create a Texture::new without an image
+// and also taking in TextureSettings
+fn create_fb_texture(screen_width: u32, screen_height: u32) -> gl::types::GLuint {
+    let mut texture_handle: gl::types::GLuint = 0;
+
+    unsafe {
+        gl::ActiveTexture(gl::TEXTURE0);
+        gl::GenTextures(1, &mut texture_handle);
+        gl::BindTexture(gl::TEXTURE_2D, texture_handle);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+
+        gl::TexImage2D(
+            gl::TEXTURE_2D,
+            0,
+            gl::RGBA as i32,
+            screen_width as i32,
+            screen_height as i32,
+            0,
+            gl::RGBA as u32,
+            gl::UNSIGNED_BYTE,
+            std::ptr::null() // NULL // 0? null ptr? this is never clear around here
+        );
+
+        gl::BindTexture(gl::TEXTURE_2D, 0);
+    }
+
+    texture_handle
+}
+
+impl Drop for FrameBufferTexture {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteTextures(1, &mut self.texture_handle);
+        }
+    }
+}
+
