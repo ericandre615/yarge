@@ -45,7 +45,7 @@ fn run() -> Result<(), failure::Error> {
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("Demo", WIDTH, HEIGHT)
+        .window("Yarge", WIDTH, HEIGHT)
         .opengl()
         .resizable()
         .build()
@@ -333,14 +333,12 @@ fn run() -> Result<(), failure::Error> {
 
         spritesheet.set_frame(sprite_frames[i]);
 
-        // TODO: wamp wamp wamp, what to do? need to update sprites...
         spritesheet_as_sprite.set_frame((sprite_frames[i].0 as f32, sprite_frames[i].1 as f32));
 
         i += 1;
 
         if i >= sprite_frames.len() - 1 { i = 0; }
 
-        //renderer.clear(); // DEBUG: only
         renderer.begin_scene(&camera);
         renderer.begin_batch();
 

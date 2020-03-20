@@ -76,25 +76,14 @@ impl RenderTarget {
         self.frame_buffer.texture.set_size(width, height);
     }
 
-    pub fn render(&mut self, camera: &Camera) {
-        //let program = match self.program {
-        //    Some(prg) => prg,
-        //    None => default_program(),
-        //};
-        let mvp = camera.get_projection() * camera.get_view();
-
-        //unsafe {
-        //    gl::Clear(gl::COLOR_BUFFER_BIT);
-        //}
-
+    pub fn render(&mut self) {
         self.program.set_used();
-        //let uniform_mvp = self.program.get_uniform_location("MVP")
-        //    .expect("RenderTarget Program failed to find uniform");
-        //self.program.set_uniform_mat4f(uniform_mvp, &mvp);
-        // bind to fbo color texture?
+        self.frame_buffer.texture.bind_to_unit(0);
+        let uniform_texture = self.program.get_uniform_location("RenderTexture")
+            .expect("RenderTexture Uniform Not Found");
+        self.program.set_uniform_1i(uniform_texture, 0);
 
         self.vao.bind();
-        self.frame_buffer.texture.bind();
 
         unsafe {
             gl::DrawArrays(

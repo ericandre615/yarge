@@ -38,7 +38,7 @@ pub struct Renderer2D {
     vbo: buffer::DynamicArrayBuffer,
     vao: buffer::VertexArray,
     ibo: buffer::ElementArrayBuffer,
-    clear_color: (u8, u8, u8, f32),
+    clear_color: (f32, f32, f32, f32),
     max_textures: gl::types::GLint,
     max_sprites: usize,
     texture_slots: Vec<i32>,
@@ -49,7 +49,7 @@ pub struct Renderer2D {
 
 impl Renderer2D {
     pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
-        let default_clear_color = (255, 255, 255, 1.0);
+        let default_clear_color = (1.0, 1.0, 1.0, 1.0);
         let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 4000) as gl::types::GLsizeiptr;
         let max_sprites = 1000;
         let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
@@ -184,6 +184,8 @@ impl Renderer2D {
         let gf = g as f32 / 255.0;
         let bf = b as f32 / 255.0;
 
+        self.clear_color = (rf, gf, bf, a);
+
         unsafe {
             gl::ClearColor(rf, gf, bf, a);
         }
@@ -196,22 +198,22 @@ impl Renderer2D {
     }
 
     pub fn render(&mut self, camera: &Camera) {
-        //self.clear();
         let (cam_width, cam_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
 
-        // TODO: check if render_target is Some(RenderTarget)
         if let Some(render_target) = &mut self.render_target {
-            render_target.update_fbo_size(cam_width as u32, cam_height as u32);
+            //render_target.update_fbo_size(cam_width as u32, cam_height as u32);
             render_target.bind();
+            let (r, g, b, a) = self.clear_color;
 
             unsafe {
-                // since we are bound to render_target fbo we are only clearing that
-                // anything already on screen fb wil not be clear
+                // clear the fbo screen, set the default screen color back to what it was
+                gl::ClearColor(0.0, 0.0, 0.0, 0.0);
                 gl::Clear(gl::COLOR_BUFFER_BIT);
+                gl::ClearColor(r, g, b, a);
             }
         }
-        // now need to fbo.bind();
+
         self.vao.bind();
 
         unsafe {
@@ -244,21 +246,13 @@ impl Renderer2D {
         }
 
         self.vao.unbind();
-        // possibly all this stuff is in render_target.render?
-        // now need to fbo.unbind()
-        // start Pass 2
-        // glClear(gl::COLOR_BUFFER_BIT)
-        // use render/fbo program
-        // bindTexture to render_target/fbo texture
-        // possibly set uniforms?
-        // bind vao of render_target/fbo
-        // gl::DrawArrays(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0);
+
         if let Some(render_target) = &mut self.render_target {
             render_target.unbind();
-            unsafe {
-                gl::Clear(gl::COLOR_BUFFER_BIT);
-            }
-            render_target.render(&camera);
+            //unsafe {
+            //    gl::Clear(gl::COLOR_BUFFER_BIT);
+            //}
+            render_target.render();
         }
 
         self.texture_slots = Vec::new();
