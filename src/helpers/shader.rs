@@ -48,7 +48,8 @@ pub enum Error {
     },
 }
 
-#[derive(Debug)]
+// TODO: not really sure if this should be clonable, but it seems to work??
+#[derive(Debug, Clone)]
 pub struct Program {
     id: gl::types::GLuint,
     name: String,

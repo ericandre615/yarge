@@ -125,7 +125,7 @@ impl Renderer2D {
         }
     }
 
-    pub fn set_ppe_program(&mut self, program: helpers::Program) {
+    pub fn set_ppe_program(&mut self, program: &helpers::Program) {
         match &mut self.render_target {
             Some(_) => {},
             None => {
@@ -136,7 +136,7 @@ impl Renderer2D {
         }
 
         if let Some(render_target) = &mut self.render_target {
-            render_target.set_program(program);
+            render_target.set_program(program.clone()); // not sure about cloning programs
         }
     }
 

@@ -79,7 +79,13 @@ fn run() -> Result<(), failure::Error> {
     // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
     // a very primitively implemented light
     let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
-    renderer.set_ppe_program(lighting_program);
+    renderer.set_ppe_program(&lighting_program);
+
+    lighting_program.set_used();
+    let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
+    let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
+    lighting_program.set_uniform_1f(uniform_intensity, 0.45);
+    lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
