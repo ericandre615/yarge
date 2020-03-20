@@ -111,9 +111,33 @@ impl Renderer2D {
 
     pub fn begin_scene(&mut self, camera: &Camera) {
         let (width, height) = camera.get_dimensions();
-        self.render_target = Some(
-            RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
-        );
+        //self.render_target = Some(
+        //    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+        //);
+
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+                );
+            },
+        }
+    }
+
+    pub fn set_ppe_program(&mut self, program: helpers::Program) {
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(10, 10).expect("Could not create RenderTarget")
+                );
+            },
+        }
+
+        if let Some(render_target) = &mut self.render_target {
+            render_target.set_program(program);
+        }
     }
 
     pub fn end_scene(&self) {
@@ -202,7 +226,7 @@ impl Renderer2D {
         let mvp = camera.get_projection() * camera.get_view();
 
         if let Some(render_target) = &mut self.render_target {
-            //render_target.update_fbo_size(cam_width as u32, cam_height as u32);
+            render_target.update_fbo_size(cam_width as u32, cam_height as u32);
             render_target.bind();
             let (r, g, b, a) = self.clear_color;
 

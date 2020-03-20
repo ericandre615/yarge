@@ -1,0 +1,18 @@
+#version 330 core
+
+precision mediump float;
+
+uniform sampler2D RenderTexture;
+
+in VS_OUTPUT {
+    vec2 UV;
+    vec2 Position;
+} IN;
+
+out vec4 Color;
+
+void main() {
+    vec2 light_pos = vec2(0.1, 0.1);
+    float intensity = 0.3 / length(IN.Position.xy - light_pos);
+    Color = texture(RenderTexture, IN.UV) * intensity;
+}

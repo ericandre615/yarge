@@ -76,6 +76,11 @@ fn run() -> Result<(), failure::Error> {
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
+    // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
+    // a very primitively implemented light
+    let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
+    renderer.set_ppe_program(lighting_program);
+
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
         width: 256.0,
@@ -206,7 +211,7 @@ fn run() -> Result<(), failure::Error> {
         );
         let alpha = match i {
             3 => 1.0,
-            _ => (80.0 - (i as f32 * 2.0)) / 255.0,
+            _ => (90.0 - (i as f32 * 2.0)) / 255.0,
         };
         let mut batch_sprite = Sprite::from_texture(
             texture_manager.get("ninja"),
