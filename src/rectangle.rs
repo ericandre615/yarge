@@ -11,6 +11,7 @@ struct Vertex {
     pos: data::f32_f32_f32,
 }
 
+#[derive(Debug)]
 pub struct RectangleProps {
     pub width: f32,
     pub height: f32,
@@ -29,6 +30,7 @@ impl Default for RectangleProps {
     }
 }
 
+#[derive(Debug)]
 pub struct Rectangle {
     program: helpers::Program,
     _vbo: buffer::ArrayBuffer,

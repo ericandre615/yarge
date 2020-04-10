@@ -19,6 +19,7 @@ pub mod renderer;
 pub mod debug;
 pub mod sprite;
 pub mod tilemaps;
+pub mod font;
 
 use helpers::{data};
 use helpers::timer::{Timer};
@@ -26,6 +27,9 @@ use resources::Resources;
 use camera::*;
 use sprite::*;
 use tilemaps::*;
+use font::{FontRenderer};
+
+use rusttype::{point};
 
 const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
@@ -71,21 +75,25 @@ fn run() -> Result<(), failure::Error> {
     texture_manager.add("ninja_spritesheet", spritesheet_texture);
     //let ninja_texture = texture_manager.get(ninja_t);
 
-    print!("Ninja_TEXTURE {:?}", texture_manager.get("ninja"));
-    print!("Mario_TEXTURE {:?}", texture_manager.get("mario"));
-
     renderer.set_clear_color(30, 30, 30, 1.0);
+
+    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT)?;
+    font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
+
+    println!("TEXT_RENDER: {:#?}", font_renderer);
+    println!("TEXT_FONT: {:#?}", font_renderer.fonts.get("dejavu").unwrap());
+    println!("TEXT_FONT_COUNT: {:#?}", font_renderer.fonts.get("dejavu").unwrap().glyph_count());
 
     // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
     // a very primitively implemented light
-    let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
-    renderer.set_ppe_program(&lighting_program);
+    //let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
+    //renderer.set_ppe_program(&lighting_program);
 
-    lighting_program.set_used();
-    let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
-    let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
-    lighting_program.set_uniform_1f(uniform_intensity, 0.45);
-    lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
+    //lighting_program.set_used();
+    //let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
+    //let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
+    //lighting_program.set_uniform_1f(uniform_intensity, 0.45);
+    //lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -268,6 +276,8 @@ fn run() -> Result<(), failure::Error> {
                     viewport.set_used();
 
                     camera.update_viewport(viewport.w, viewport.h);
+
+                    //font_renderer.update_cache_size(viewport.w as u32, viewport.h as u32);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
@@ -334,6 +344,26 @@ fn run() -> Result<(), failure::Error> {
             image3.set_color((0, 0, 255, 1.0));
         }
 
+
+        //for rect in &font_renderer.get_test_rects() {
+        //    println!("RENDERING RECT {:#?}", rect);
+        //    rect.render(&camera);
+        //}
+//    let dejavu_font = font_renderer.get_font(&"dejavu".to_string());
+//    let dj_glyph = dejavu_font.glyph("E".chars().next().unwrap());
+//    let ft_size = text::FontSize::new(24.0);
+//    let mut pos_glyph = dj_glyph.scaled(ft_size.scale).positioned(point(0.0, 0.0)); //.set_position(0, 0);
+//
+//    font_renderer.cache.queue_glyph(0, pos_glyph.clone());
+//
+//    println!("GLYPH: {:#?}", dj_glyph);
+//    println!("POS_GLYPH: {:#?}", pos_glyph);
+//        font_renderer.cache.cache_queued(|rect, data| {
+//            println!("CACHE_QUEUED");
+//            println!("CACHE_RECT {:#?}", rect);
+//            println!("CACHE_DATA {:#?}", data);
+//        }).unwrap();
+
         rect1.render(&camera);
         rect2.render(&camera);
         rect3.render(&camera);
@@ -370,6 +400,19 @@ fn run() -> Result<(), failure::Error> {
         renderer.end_batch();
         renderer.render(&camera);
         renderer.end_scene();
+
+        let my_text = font::Text::new(
+            "Hello OpenGL".to_string(),
+            font::TextSettings {
+                font: "dejavu".to_string(),
+                width: 400.0,
+                size: 120.0.into(),
+                color: (0, 0, 0, 1.0),
+            }
+        );
+
+        font_renderer.get_test_rects(&camera);
+        font_renderer.render(my_text, &camera);
 
         window.gl_swap_window();
     }
