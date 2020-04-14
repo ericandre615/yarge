@@ -13,8 +13,8 @@ pub struct GlyphTexture<'a> {
 }
 
 impl FontTexture {
-    pub fn new(screen_width: u32, screen_height: u32) -> FontTexture {
-        let texture_handle = create_font_texture(screen_width, screen_height);
+    pub fn new(cache_width: u32, cache_height: u32) -> FontTexture {
+        let texture_handle = create_font_texture(cache_width, cache_height);
 
         FontTexture {
             texture_handle,
@@ -45,24 +45,6 @@ impl FontTexture {
         }
     }
 
-    pub fn set_size(&self, width: u32, height: u32) {
-        self.bind();
-        unsafe {
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as i32,
-                width as i32,
-                height as i32,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                std::ptr::null() //NULL
-            );
-        }
-        self.unbind();
-    }
-
     pub fn bind(&self) {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
@@ -83,7 +65,7 @@ impl FontTexture {
     }
 }
 
-fn create_font_texture(screen_width: u32, screen_height: u32) -> gl::types::GLuint {
+fn create_font_texture(cache_width: u32, cache_height: u32) -> gl::types::GLuint {
     let mut texture_handle: gl::types::GLuint = 0;
 
     unsafe {
@@ -92,15 +74,15 @@ fn create_font_texture(screen_width: u32, screen_height: u32) -> gl::types::GLui
         gl::BindTexture(gl::TEXTURE_2D, texture_handle);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);//gl::LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);//gl::LINEAR as i32);
 
         gl::TexImage2D(
             gl::TEXTURE_2D,
             0,
             gl::RGBA as i32,
-            screen_width as i32,
-            screen_height as i32,
+            cache_width as i32,
+            cache_height as i32,
             0,
             gl::RGBA as u32,
             gl::UNSIGNED_BYTE,

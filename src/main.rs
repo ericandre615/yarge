@@ -79,6 +79,7 @@ fn run() -> Result<(), failure::Error> {
 
     let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
+    font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
 
     println!("TEXT_RENDER: {:#?}", font_renderer);
     println!("TEXT_FONT: {:#?}", font_renderer.fonts.get("dejavu").unwrap());
@@ -116,6 +117,7 @@ fn run() -> Result<(), failure::Error> {
     })?;
 
     let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
+    let mut ui_camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
     let mut image2 = image::Image::new(
         &res,
@@ -276,7 +278,7 @@ fn run() -> Result<(), failure::Error> {
                     viewport.set_used();
 
                     camera.update_viewport(viewport.w, viewport.h);
-
+                    ui_camera.update_viewport(viewport.w, viewport.h);
                     //font_renderer.update_cache_size(viewport.w as u32, viewport.h as u32);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
@@ -405,14 +407,37 @@ fn run() -> Result<(), failure::Error> {
             "Hello OpenGL".to_string(),
             font::TextSettings {
                 font: "dejavu".to_string(),
-                width: 400.0,
-                size: 120.0.into(),
-                color: (0, 0, 0, 1.0),
+                width: 140.0,
+                size: 180.0.into(),
+                pos: (0.0, 0.0),
+                color: (255, 255, 0, 1.0),
+            }
+        );
+        let my_text_b = font::Text::new(
+            "Retro Style Games".to_string(),
+            font::TextSettings {
+                font: "dejavu".to_string(),
+                width: 600.0,
+                size: 80.0.into(),
+                pos: (40.0, 40.0),
+                color: (0, 100, 100, 1.0),
+            }
+        );
+        let jp_text = font::Text::new(
+            "こんにちは　世界".to_string(),
+            font::TextSettings {
+                font: "cjk".to_string(),
+                width: 1000.0,
+                size: 140.0.into(),
+                pos: (10.0, 20.0),
+                color: (0, 150, 50, 1.0),
             }
         );
 
         font_renderer.get_test_rects(&camera);
-        font_renderer.render(my_text, &camera);
+        font_renderer.render(my_text, &ui_camera);
+        font_renderer.render(my_text_b, &ui_camera);
+        font_renderer.render(jp_text, &ui_camera);
 
         window.gl_swap_window();
     }

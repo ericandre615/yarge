@@ -6,13 +6,16 @@ pub fn get_font_shaders() -> (String, String) {
         layout (location = 1) in vec2 TexCoords;
         layout (location = 2) in vec4 Color;
 
+        uniform mat4 MVP;
+
         out VS_OUTPUT {
             vec2 TexCoords;
             vec4 Color;
         } OUT;
 
         void main() {
-            gl_Position = vec4(Position, 1.0);
+            //gl_Position = vec4(Position, 1.0);
+            gl_Position = MVP * vec4(Position, 1.0);
 
             OUT.TexCoords = TexCoords;
             OUT.Color = Color;

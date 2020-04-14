@@ -20,6 +20,7 @@ pub struct TextSettings {
     pub width: f32,
     pub font: String,
     pub size: FontSize,
+    pub pos: (f32, f32),
     pub color: (u8, u8, u8, f32),
 }
 
@@ -29,6 +30,7 @@ impl Default for TextSettings {
             width: 80.0,
             font: "".to_string(),
             size: 32.0.into(),
+            pos: (0.0, 0.0),
             color: (255, 255, 255, 1.0),
         }
     }
