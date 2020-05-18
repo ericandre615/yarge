@@ -1,6 +1,8 @@
 #[derive(Debug)]
 pub struct FontTexture {
     texture_handle: gl::types::GLuint,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Debug)]
@@ -18,6 +20,8 @@ impl FontTexture {
 
         FontTexture {
             texture_handle,
+            width: cache_width,
+            height: cache_height,
         }
     }
 
@@ -76,6 +80,7 @@ fn create_font_texture(cache_width: u32, cache_height: u32) -> gl::types::GLuint
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);//gl::LINEAR as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);//gl::LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAX_LEVEL, 0);
 
         gl::TexImage2D(
             gl::TEXTURE_2D,

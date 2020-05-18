@@ -31,8 +31,8 @@ use font::{FontRenderer};
 
 use rusttype::{point};
 
-const WIDTH: u32 = 720;
-const HEIGHT: u32 = 480;
+const WIDTH: u32 = 1024;//720;
+const HEIGHT: u32 = 780;//480;
 
 fn main() {
     if let Err(e) = run() {
@@ -265,6 +265,8 @@ fn run() -> Result<(), failure::Error> {
 
     let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
 
+    let mut should_capture = false;
+
     'main: loop {
         timer.tick();
         for event in event_pump.poll_iter() {
@@ -279,7 +281,6 @@ fn run() -> Result<(), failure::Error> {
 
                     camera.update_viewport(viewport.w, viewport.h);
                     ui_camera.update_viewport(viewport.w, viewport.h);
-                    //font_renderer.update_cache_size(viewport.w as u32, viewport.h as u32);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
@@ -287,6 +288,9 @@ fn run() -> Result<(), failure::Error> {
                         Some(sdl2::keyboard::Keycode::L) => {
 //                            camera.cancel_look_at();
                             is_look_at = false;
+                        },
+                        Some(sdl2::keyboard::Keycode::C) => {
+                            should_capture = true;
                         },
                         Some(sdl2::keyboard::Keycode::Right) => {
                             let (x, _y) = image3.get_position();
@@ -346,26 +350,6 @@ fn run() -> Result<(), failure::Error> {
             image3.set_color((0, 0, 255, 1.0));
         }
 
-
-        //for rect in &font_renderer.get_test_rects() {
-        //    println!("RENDERING RECT {:#?}", rect);
-        //    rect.render(&camera);
-        //}
-//    let dejavu_font = font_renderer.get_font(&"dejavu".to_string());
-//    let dj_glyph = dejavu_font.glyph("E".chars().next().unwrap());
-//    let ft_size = text::FontSize::new(24.0);
-//    let mut pos_glyph = dj_glyph.scaled(ft_size.scale).positioned(point(0.0, 0.0)); //.set_position(0, 0);
-//
-//    font_renderer.cache.queue_glyph(0, pos_glyph.clone());
-//
-//    println!("GLYPH: {:#?}", dj_glyph);
-//    println!("POS_GLYPH: {:#?}", pos_glyph);
-//        font_renderer.cache.cache_queued(|rect, data| {
-//            println!("CACHE_QUEUED");
-//            println!("CACHE_RECT {:#?}", rect);
-//            println!("CACHE_DATA {:#?}", data);
-//        }).unwrap();
-
         rect1.render(&camera);
         rect2.render(&camera);
         rect3.render(&camera);
@@ -408,7 +392,7 @@ fn run() -> Result<(), failure::Error> {
             font::TextSettings {
                 font: "dejavu".to_string(),
                 width: 140.0,
-                size: 180.0.into(),
+                size: 120.0.into(),
                 pos: (0.0, 0.0),
                 color: (255, 255, 0, 1.0),
             }
@@ -423,21 +407,26 @@ fn run() -> Result<(), failure::Error> {
                 color: (0, 100, 100, 1.0),
             }
         );
-        let jp_text = font::Text::new(
-            "こんにちは　世界".to_string(),
-            font::TextSettings {
-                font: "cjk".to_string(),
-                width: 1000.0,
-                size: 140.0.into(),
-                pos: (10.0, 20.0),
-                color: (0, 150, 50, 1.0),
-            }
-        );
+       //let jp_text = font::Text::new(
+       //    "こんにちは　世界".to_string(),
+       //    font::TextSettings {
+       //        font: "cjk".to_string(),
+       //        width: 1000.0,
+       //        size: 100.0.into(),
+       //        pos: (10.0, 20.0),
+       //        color: (0, 150, 50, 1.0),
+       //    }
+       //);
 
-        font_renderer.get_test_rects(&camera);
+        font_renderer.get_test_rects(&ui_camera);
         font_renderer.render(my_text, &ui_camera);
         font_renderer.render(my_text_b, &ui_camera);
-        font_renderer.render(jp_text, &ui_camera);
+        //font_renderer.render(jp_text, &ui_camera);
+
+        if should_capture {
+            font_renderer.capture_texture();
+            should_capture = false;
+        }
 
         window.gl_swap_window();
     }

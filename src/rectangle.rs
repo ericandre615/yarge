@@ -35,6 +35,7 @@ pub struct Rectangle {
     program: helpers::Program,
     _vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
+    ibo: buffer::ElementArrayBuffer,
     uniform_mvp: i32,
     uniform_color: i32,
     indicies: Vec<u32>,
@@ -71,28 +72,27 @@ impl Rectangle {
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
-        vbo.unbind();
+        //vbo.unbind();
 
         let vao = buffer::VertexArray::new();
 
         vao.bind();
-        vbo.bind();
+        //vbo.bind();
 
         Vertex::vertex_attrib_pointers();
-
-        vbo.unbind();
-
-
-        vao.unbind();
 
         ibo.bind();
         ibo.static_draw_data(&indicies);
         ibo.unbind();
 
+        vbo.unbind();
+        vao.unbind();
+
         Ok(Rectangle {
             program,
             _vbo: vbo,
             vao,
+            ibo,
             uniform_mvp,
             uniform_color,
             indicies,
@@ -130,6 +130,7 @@ impl Rectangle {
         self.program.set_uniform_4f(self.uniform_color, self.props.color);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
 
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -140,6 +141,9 @@ impl Rectangle {
                 self.indicies.as_ptr() as *const gl::types::GLvoid
             );
         }
+
+        self.vao.unbind();
+        self.ibo.unbind();
     }
 }
 

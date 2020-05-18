@@ -61,16 +61,16 @@ impl fmt::Debug for FontRenderer<'_> {
 
 impl<'a> FontRenderer<'a> {
     pub fn new(res: &'a Resources, screen_width: u32, screen_height: u32) -> Result<FontRenderer, failure::Error> {
-        let scale_factor = 2;//24;
-        // maybe 512x512 is enough?
+        let scale_factor = 1.4166666;
         // TODO: research Signed Distance Field
         let (cache_width, cache_height) = (
-            1024 * scale_factor,//(screen_width * scale_factor) as u32, // 512 needs to be screen width
-            780 * scale_factor,//(screen_height * scale_factor) as u32 // screen height
+            (512.0 * scale_factor) as u32,//(screen_width * scale_factor) as u32, // 512 needs to be screen width
+            (512.0 * scale_factor) as u32,//(screen_height * scale_factor) as u32 // screen height
             // with_inner_size(glium::glutin::dpi::PhysicalSize::new(512, 512))
         );
         let mut cache = Cache::builder()
             .dimensions(cache_width, cache_height)
+            .pad_glyphs(true)
             .build();
         let (vert_src, frag_src) = get_font_shaders();
         let shaders = vec![
@@ -92,10 +92,10 @@ impl<'a> FontRenderer<'a> {
 
         vbo.bind();
         vbo.set_buffer_data();
-        vbo.unbind();
+        //vbo.unbind();
 
         vao.bind();
-        vbo.bind();
+        //vbo.bind();
 
         GlyphVertex::vertex_attrib_pointers();
 
@@ -153,7 +153,7 @@ impl<'a> FontRenderer<'a> {
         let mvp = camera.get_projection() * camera.get_view();
         let font = self.fonts.get(&text.settings.font)
             .expect(&format!("No Font {:#?} Found", text.settings.font));
-        let res = self.res.clone();
+        let res = self.res.clone(); // temporary for debug rects
         let text_color = (
             text.settings.color.0 as f32 / 255.0,
             text.settings.color.1 as f32 / 255.0,
@@ -161,17 +161,20 @@ impl<'a> FontRenderer<'a> {
             text.settings.color.3
         );
 
-        let glyphs = layout_text(
-            font, //font,
-            text.settings.size.scale,//scale,
-            // probably need width field on Text
-            text.settings.width as u32,//1024, //width as u32, //width? of? full text? window?,
-            &text.text//text_str
+        let font_scale = text.settings.size.scale.x * self.scale_factor;
+
+        let glyphs= layout_text(
+            font,
+            Scale::uniform(font_scale),//text.settings.size.scale,
+            text.settings.width as u32,
+            &text.text
         );
 
+        let mut should_print = true;
         for glyph in &glyphs {
-            self.cache.queue_glyph(0, glyph.clone());
+            self.cache.queue_glyph(0 /* font_id */, glyph.clone());
         }
+
         // TODO: remove testing rects and implement
         // building the vertex data and writing to the texture
         let mut rects = Vec::new();
@@ -185,11 +188,10 @@ impl<'a> FontRenderer<'a> {
             //    width: rect.width() as f32,//rect.max.x as f32,
             //    height: rect.height() as f32,//rect.max.y as f32,
             //    pos: (rect.min.x as f32, rect.min.y as f32),//(rect.width() as f32, rect.height() as f32),
-            //    color: (0.0, 1.0, 0.5, 1.0),//text_color,
+            //    color: (1.0, 1.0, 0.5, 1.0),//text_color,
             //}).unwrap();
 
             //rects.push(glyph_rect);
-            // TODO: basically these need to happen
             let glyph_texture = GlyphTexture {
                 left: rect.min.x,
                 bottom: rect.min.y,
@@ -198,19 +200,19 @@ impl<'a> FontRenderer<'a> {
                 data,
             };
 
-            //glyph_textures.push(glyph_texture);
+            if should_print {
+                let glyph_image = save_image(&data, rect.width(), rect.height());
+                should_print = false;
+            }
+
             font_texture.update(&glyph_texture);
         }).unwrap();
-
-        //for gt in &glyph_textures {
-        //    self.texture.update(gt);
-        //}
 
         let origin = point(0.0, 0.0);
         let (text_offset_x, text_offset_y) = text.settings.pos;
         let vertices: Vec<Vec<GlyphVertex>> = glyphs
             .iter()
-            .filter_map(|g| self.cache.rect_for(0, g).ok().unwrap())//.flatten())
+            .filter_map(|g| self.cache.rect_for(0 /* font_id */, g).ok().unwrap())//.flatten())
             .map(|(uv_rect, screen_rect)| {
                 //let gl_rect = Rect {
                 //    min: origin
@@ -225,18 +227,24 @@ impl<'a> FontRenderer<'a> {
                 //        )) * 2.0,
                 //};
                 let gl_rect = Rect {
-                    min: origin + vector(screen_rect.min.x as f32 + text_offset_x as f32, screen_rect.min.y as f32 + text_offset_y as f32),
-                    max: origin + vector(screen_rect.max.x as f32 + text_offset_x as f32, screen_rect.max.y as f32 + text_offset_y as f32),
+                    min: origin + vector(
+                        screen_rect.min.x as f32 + text_offset_x as f32,
+                        screen_rect.min.y as f32 + text_offset_y as f32
+                    ),
+                    max: origin + vector(
+                        screen_rect.max.x as f32 + text_offset_x as f32,
+                        screen_rect.max.y as f32 + text_offset_y as f32
+                    ),
                 };
                 let (w, h) = (
-                    gl_rect.min.x + gl_rect.max.x,
-                    gl_rect.min.y + gl_rect.max.y,
+                    gl_rect.max.x - gl_rect.min.x,//gl_rect.min.x + gl_rect.max.x,
+                    gl_rect.max.y - gl_rect.min.y,//gl_rect.min.y + gl_rect.max.y,
                 );
                 let glyph_rect = Rectangle::new(&res, &RectangleProps {
-                    width: 80 as f32,//rect.max.x as f32,
-                    height: 80 as f32,//rect.max.y as f32,
-                    pos: (gl_rect.min.x as f32, gl_rect.max.y as f32),//(rect.width() as f32, rect.height() as f32),
-                    color: (1.0, 0.0, 0.5, 1.0),//text_color,
+                    width: w as f32,//rect.max.x as f32,
+                    height: h as f32,//rect.max.y as f32,
+                    pos: (gl_rect.min.x as f32, gl_rect.min.y as f32),//(rect.width() as f32, rect.height() as f32),
+                    color: (0.20, 0.0, 0.5, 1.0),//text_color,
                 }).unwrap();
 
                 rects.push(glyph_rect);
@@ -245,6 +253,8 @@ impl<'a> FontRenderer<'a> {
                 //println!("DEBUG FONT Screen: {:#?}", screen_rect);
                 //println!("DEBUG FONT GlRect: {:#?}", gl_rect);
                 //println!("DEBUG FONT UV: {:#?}", uv_rect);
+                //println!("DEBUG FONT WH: w {:#?} h {:#?}", w, h);
+                //println!("DEBUG FONT Scale {:#?}", text.settings.size.scale);
 
                 // 0 top left
                 // 1 top right
@@ -291,9 +301,13 @@ impl<'a> FontRenderer<'a> {
 
         if !vertices.is_empty() {
             self.vertices = vertices;
+            self.indices = generate_batch_indices(self.vertices.len());
+            self.ibo.bind();
+            self.ibo.static_draw_data(&self.indices);
+            self.ibo.unbind();
         }
 
-        println!("FONT VERTICES {:#?}", self.vertices);
+        self.texture.unbind();
 
         self.texture.bind_to_unit(0);
 
@@ -303,6 +317,7 @@ impl<'a> FontRenderer<'a> {
         self.program.set_uniform_1i(*self.uniforms.get("texture").unwrap(), 0);
         self.program.set_uniform_mat4f(*self.uniforms.get("mvp").unwrap(), &mvp);
 
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -315,6 +330,7 @@ impl<'a> FontRenderer<'a> {
         }
 
         self.vao.unbind();
+        self.ibo.unbind();
 
         self.vbo.reset_buffer_offset();
         self.vbo.unbind();
@@ -325,6 +341,10 @@ impl<'a> FontRenderer<'a> {
         for rect in &self.test_rects {
             rect.render(camera);
         }
+    }
+
+    pub fn capture_texture(&mut self) {
+        let img = texture_to_image(&self.texture);
     }
 }
 
@@ -407,4 +427,61 @@ fn layout_text<'f>(
     }
 
     result
+}
+
+fn save_image(data: &[u8], width: u32, height: u32) {
+    let mut img_container = image::DynamicImage::new_rgba8(width, height).to_rgba();
+    let len = data.len() - 4;
+    let mut x = 0;
+    let mut y = 0;
+
+    for pxc in (0..len).step_by(4) {
+        x += 1;
+        if x >= width { x = 0; y += 1; }
+        let px = pxc as u32;
+
+        img_container.put_pixel(x, y, image::Rgba([
+           data[pxc + 0],
+           data[pxc + 1],
+           data[pxc + 2],
+           data[pxc + 3],
+        ]));
+    }
+
+    img_container.save("glyph_texture.png").unwrap();
+}
+
+// TODO: debug only
+fn texture_to_image(texture: &FontTexture) {
+    let size = texture.width * texture.height * 4;
+    texture.bind();
+
+    let mut img_buf: Vec<u8> = Vec::with_capacity(size as usize);// as *mut std::ffi::c_void;
+    unsafe { img_buf.set_len(size as usize);}
+    let mut img_ptr = img_buf.as_mut_ptr();
+    let mut img_container = image::DynamicImage::new_rgba8(texture.width, texture.height).to_rgba();
+
+    unsafe {
+        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
+        gl::GetTexImage(gl::TEXTURE_2D, 0, gl::RGBA, gl::UNSIGNED_BYTE, img_ptr as *mut std::ffi::c_void);
+    }
+    texture.unbind();
+
+    let mut x = 0;
+    let mut y = 0;
+    let len = img_buf.len() - 4;
+    for pxc in (0..len).step_by(4) {
+        x += 1;
+        if x >= texture.width { x = 0; y += 1; }
+        let px = pxc as u32;
+
+        img_container.put_pixel(x, y, image::Rgba([
+           img_buf[pxc + 0],
+           img_buf[pxc + 1],
+           img_buf[pxc + 2],
+           255//img_buf[pxc + 3]
+        ]));
+    }
+
+    img_container.save("font_texture_capture.png").unwrap();
 }
