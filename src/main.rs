@@ -44,6 +44,7 @@ fn run() -> Result<(), failure::Error> {
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
+    let initial_dpi = video_subsystem.display_dpi(0).unwrap(); // 0 = window/display number?
 
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
@@ -77,7 +78,7 @@ fn run() -> Result<(), failure::Error> {
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT)?;
+    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
     font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
 
@@ -267,6 +268,28 @@ fn run() -> Result<(), failure::Error> {
 
     let mut should_capture = false;
 
+        let my_text = font::Text::new(
+            "Hello OpenGL".to_string(),
+            font::TextSettings {
+                font: "dejavu".to_string(),
+                width: 200.0,
+                size: 62.0.into(),
+                pos: (0.0, 0.0),
+                color: (255, 255, 0, 0.58),
+            }
+        );
+        let my_text_b = font::Text::new(
+            "Retro Style Games".to_string(),
+            font::TextSettings {
+                font: "dejavu".to_string(),
+                width: 600.0,
+                size: 24.0.into(),
+                pos: (40.0, 40.0),
+                color: (100, 100, 100, 1.0),
+            }
+        );
+
+
     'main: loop {
         timer.tick();
         for event in event_pump.poll_iter() {
@@ -387,41 +410,21 @@ fn run() -> Result<(), failure::Error> {
         renderer.render(&camera);
         renderer.end_scene();
 
-        let my_text = font::Text::new(
-            "Hello OpenGL".to_string(),
-            font::TextSettings {
-                font: "dejavu".to_string(),
-                width: 140.0,
-                size: 120.0.into(),
-                pos: (0.0, 0.0),
-                color: (255, 255, 0, 1.0),
-            }
-        );
-        let my_text_b = font::Text::new(
-            "Retro Style Games".to_string(),
-            font::TextSettings {
-                font: "dejavu".to_string(),
-                width: 600.0,
-                size: 80.0.into(),
-                pos: (40.0, 40.0),
-                color: (0, 100, 100, 1.0),
-            }
-        );
-       //let jp_text = font::Text::new(
-       //    "こんにちは　世界".to_string(),
-       //    font::TextSettings {
-       //        font: "cjk".to_string(),
-       //        width: 1000.0,
-       //        size: 100.0.into(),
-       //        pos: (10.0, 20.0),
-       //        color: (0, 150, 50, 1.0),
-       //    }
-       //);
+       let jp_text = font::Text::new(
+           "こんにちは　世界".to_string(),
+           font::TextSettings {
+               font: "cjk".to_string(),
+               width: 1000.0,
+               size: 72.0.into(),
+               pos: (200.0, 80.0),
+               color: (0, 150, 50, 1.0),
+           }
+       );
 
         font_renderer.get_test_rects(&ui_camera);
-        font_renderer.render(my_text, &ui_camera);
-        font_renderer.render(my_text_b, &ui_camera);
-        //font_renderer.render(jp_text, &ui_camera);
+        font_renderer.render(&my_text, &ui_camera);
+        font_renderer.render(&my_text_b, &ui_camera);
+        font_renderer.render(&jp_text, &ui_camera);
 
         if should_capture {
             font_renderer.capture_texture();

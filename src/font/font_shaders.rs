@@ -37,8 +37,15 @@ pub fn get_font_shaders() -> (String, String) {
         out vec4 Color;
 
         void main() {
-            //Color = IN.Color * vec4(1.0, 1.0, 1.0, texture(GlyphTexture, IN.TexCoords).r);
-            Color = texture2D(GlyphTexture, IN.TexCoords) * vec4(IN.Color.x, IN.Color.y, IN.Color.z, IN.Color.w);
+            Color = IN.Color * vec4(1.0, 1.0, 1.0, texture(GlyphTexture, IN.TexCoords).r);
+            //Color = texture2D(GlyphTexture, IN.TexCoords) * vec4(IN.Color.x, IN.Color.y, IN.Color.z, IN.Color.w);
+            //float alpha = texture(GlyphTexture, IN.TexCoords).r;
+
+            //if (alpha <= 0.0) {
+            //    discard;
+            //}
+
+            //Color = IN.Color * vec4(1.0, 1.0, 1.0, alpha);
         }
     "#;
 

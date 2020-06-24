@@ -33,6 +33,9 @@ impl FontTexture {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
 
+            // TODO: where to set this? Does it need to be unset?
+            // is it going to effect sprite textures/etc elsewhere?
+            gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
             gl::TexSubImage2D(
                 gl::TEXTURE_2D,// GLenum target,
                 0,// GLint level,
@@ -40,7 +43,7 @@ impl FontTexture {
                 glyph.bottom as i32,// GLint yoffset,
                 glyph.width as i32,// GLsizei width,
                 glyph.height as i32,// GLsizei height,
-                gl::RGBA,//?// GLenum format,
+                gl::RED,// GLenum format, // gl::ALPHA may also work depending on shader
                 gl::UNSIGNED_BYTE,//?// GLenum type,
                 glyph.data.as_ptr() as *const gl::types::GLvoid,// const GLvoid * datav
             );
@@ -91,7 +94,7 @@ fn create_font_texture(cache_width: u32, cache_height: u32) -> gl::types::GLuint
             0,
             gl::RGBA as u32,
             gl::UNSIGNED_BYTE,
-            std::ptr::null() // NULL // 0? null ptr? this is never clear around here
+            std::ptr::null(),
         );
 
         gl::BindTexture(gl::TEXTURE_2D, 0);

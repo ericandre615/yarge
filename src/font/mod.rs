@@ -1,6 +1,7 @@
 pub mod text;
 mod font_texture;
 mod font_shaders;
+mod layout;
 
 use rusttype::gpu_cache::Cache;
 use rusttype::{point, vector, Font, PositionedGlyph, Rect, Scale};
@@ -13,6 +14,7 @@ use crate::resources::{Resources};
 use crate::camera::{Camera};
 
 use font_shaders::{get_font_shaders};
+use layout::{basic_layout};
 use font_texture::{FontTexture, GlyphTexture};
 pub use text::{Text, TextSettings};
 
@@ -60,8 +62,9 @@ impl fmt::Debug for FontRenderer<'_> {
 }
 
 impl<'a> FontRenderer<'a> {
-    pub fn new(res: &'a Resources, screen_width: u32, screen_height: u32) -> Result<FontRenderer, failure::Error> {
-        let scale_factor = 1.4166666;
+    pub fn new(res: &'a Resources, screen_width: u32, screen_height: u32, display_dpi: f32) -> Result<FontRenderer, failure::Error> {
+        //let scale_factor = 1.4166666;
+        let scale_factor = display_dpi;
         // TODO: research Signed Distance Field
         let (cache_width, cache_height) = (
             (512.0 * scale_factor) as u32,//(screen_width * scale_factor) as u32, // 512 needs to be screen width
@@ -70,7 +73,7 @@ impl<'a> FontRenderer<'a> {
         );
         let mut cache = Cache::builder()
             .dimensions(cache_width, cache_height)
-            .pad_glyphs(true)
+            //.pad_glyphs(true)
             .build();
         let (vert_src, frag_src) = get_font_shaders();
         let shaders = vec![
@@ -147,7 +150,7 @@ impl<'a> FontRenderer<'a> {
             .build();
     }
 
-    pub fn render(&mut self, text: Text, camera: &Camera) {
+    pub fn render(&mut self, text: &Text, camera: &Camera) {
         //let font = self.get_font(&text.font);
         let (screen_width, screen_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
@@ -163,16 +166,25 @@ impl<'a> FontRenderer<'a> {
 
         let font_scale = text.settings.size.scale.x * self.scale_factor;
 
-        let glyphs= layout_text(
+        //let glyphs= layout_text(
+        //    font,
+        //    Scale::uniform(font_scale),//text.settings.size.scale,
+        //    text.settings.width as u32,
+        //    &text.text
+        //);
+        // TODO: support user layout with function? Probably and default to this basic_layout
+        let glyphs = basic_layout(
             font,
-            Scale::uniform(font_scale),//text.settings.size.scale,
+            Scale::uniform(font_scale),
             text.settings.width as u32,
             &text.text
         );
 
         let mut should_print = true;
         for glyph in &glyphs {
-            self.cache.queue_glyph(0 /* font_id */, glyph.clone());
+            println!("Glyph F {:#?}", glyph);
+            //let font_id = glyph.font().unwrap();
+            self.cache.queue_glyph(0/* font_id */, glyph.clone());
         }
 
         // TODO: remove testing rects and implement
@@ -201,7 +213,7 @@ impl<'a> FontRenderer<'a> {
             };
 
             if should_print {
-                let glyph_image = save_image(&data, rect.width(), rect.height());
+                let glyph_image = save_image(&data, rect.width(), rect.height(), "glyph_image.png");
                 should_print = false;
             }
 
@@ -248,13 +260,6 @@ impl<'a> FontRenderer<'a> {
                 }).unwrap();
 
                 rects.push(glyph_rect);
-
-                //println!("DEBUG FONT Screen: sw {:#?}, sh {:#?}", screen_width, screen_height);
-                //println!("DEBUG FONT Screen: {:#?}", screen_rect);
-                //println!("DEBUG FONT GlRect: {:#?}", gl_rect);
-                //println!("DEBUG FONT UV: {:#?}", uv_rect);
-                //println!("DEBUG FONT WH: w {:#?} h {:#?}", w, h);
-                //println!("DEBUG FONT Scale {:#?}", text.settings.size.scale);
 
                 // 0 top left
                 // 1 top right
@@ -334,6 +339,10 @@ impl<'a> FontRenderer<'a> {
 
         self.vbo.reset_buffer_offset();
         self.vbo.unbind();
+    }
+
+    pub fn cache_scale_tolerance(&self) -> f32 {
+        self.cache.scale_tolerance()
     }
 
     pub fn get_test_rects(&mut self, camera: &Camera) {
@@ -429,7 +438,7 @@ fn layout_text<'f>(
     result
 }
 
-fn save_image(data: &[u8], width: u32, height: u32) {
+fn save_image(data: &[u8], width: u32, height: u32, file_name: &str) {
     let mut img_container = image::DynamicImage::new_rgba8(width, height).to_rgba();
     let len = data.len() - 4;
     let mut x = 0;
@@ -448,7 +457,7 @@ fn save_image(data: &[u8], width: u32, height: u32) {
         ]));
     }
 
-    img_container.save("glyph_texture.png").unwrap();
+    img_container.save(file_name).unwrap();
 }
 
 // TODO: debug only
