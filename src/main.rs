@@ -266,28 +266,26 @@ fn run() -> Result<(), failure::Error> {
 
     let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
 
-    let mut should_capture = false;
-
-        let my_text = font::Text::new(
-            "Hello OpenGL".to_string(),
-            font::TextSettings {
-                font: "dejavu".to_string(),
-                width: 200.0,
-                size: 62.0.into(),
-                pos: (0.0, 0.0),
-                color: (255, 255, 0, 0.58),
-            }
-        );
-        let my_text_b = font::Text::new(
-            "Retro Style Games".to_string(),
-            font::TextSettings {
-                font: "dejavu".to_string(),
-                width: 600.0,
-                size: 24.0.into(),
-                pos: (40.0, 40.0),
-                color: (100, 100, 100, 1.0),
-            }
-        );
+    let my_text = font::Text::new(
+        "Hello OpenGL".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 200.0,
+            size: 62.0.into(),
+            pos: (0.0, 0.0),
+            color: (255, 255, 0, 0.58),
+        }
+    );
+    let my_text_b = font::Text::new(
+        "Retro Style Games".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 600.0,
+            size: 24.0.into(),
+            pos: (40.0, 40.0),
+            color: (100, 100, 100, 1.0),
+        }
+    );
 
 
     'main: loop {
@@ -311,9 +309,6 @@ fn run() -> Result<(), failure::Error> {
                         Some(sdl2::keyboard::Keycode::L) => {
 //                            camera.cancel_look_at();
                             is_look_at = false;
-                        },
-                        Some(sdl2::keyboard::Keycode::C) => {
-                            should_capture = true;
                         },
                         Some(sdl2::keyboard::Keycode::Right) => {
                             let (x, _y) = image3.get_position();
@@ -421,15 +416,9 @@ fn run() -> Result<(), failure::Error> {
            }
        );
 
-        font_renderer.get_test_rects(&ui_camera);
         font_renderer.render(&my_text, &ui_camera);
         font_renderer.render(&my_text_b, &ui_camera);
         font_renderer.render(&jp_text, &ui_camera);
-
-        if should_capture {
-            font_renderer.capture_texture();
-            should_capture = false;
-        }
 
         window.gl_swap_window();
     }

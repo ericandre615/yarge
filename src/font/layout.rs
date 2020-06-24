@@ -1,17 +1,21 @@
 use rusttype::{point, Font, Scale, PositionedGlyph};
 
+// taken directly from the rusttype example
+// https://github.com/redox-os/rusttype/blob/master/dev/examples/gpu_cache.rs
 pub fn basic_layout<'a>(
     font: &Font<'a>,
     scale: Scale,
     width: u32,
     text: &str,
 ) -> Vec<PositionedGlyph<'a>> {
+    use unicode_normalization::UnicodeNormalization;
+
     let mut result = Vec::new();
     let v_metrics = font.v_metrics(scale);
     let advance_height = v_metrics.ascent - v_metrics.descent + v_metrics.line_gap;
     let mut caret = point(0.0, v_metrics.ascent);
     let mut last_glyph_id = None;
-    for c in text.chars() {
+    for c in text.nfc() {
         if c.is_control() {
             match c {
                 '\r' => {
