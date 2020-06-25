@@ -1,6 +1,8 @@
 use image::{ImageResult, DynamicImage, ImageError};
 use serde_json;
 
+use rusttype::{Font, FontCollection};
+
 use std::path::{Path, PathBuf};
 use std::fs;
 use std::io::{self, Read};
@@ -79,6 +81,15 @@ impl Resources {
         let json: serde_json::Value = serde_json::from_str(&file_contents)?;
 
         Ok(json)
+    }
+
+    pub fn load_font(&self, path: &str) -> Result<Font, failure::Error> {
+        let font_path = resource_name_to_path(&self.root_path, path);
+        let font_data = std::fs::read(font_path)?;
+        let font = FontCollection::from_bytes(font_data).unwrap()
+            .into_font().expect("Error loading Font");
+
+        Ok(font)
     }
 }
 

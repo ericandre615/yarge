@@ -74,10 +74,10 @@ impl Renderer2D {
 
         vbo.bind();
         vbo.set_buffer_data();
-        vbo.unbind();
+        //vbo.unbind();
 
         vao.bind();
-        vbo.bind();
+        //vbo.bind();
 
         BatchVertex::vertex_attrib_pointers();
 
@@ -201,6 +201,12 @@ impl Renderer2D {
 
         self.vertices.push(batch_vertices);
         self.sprite_count = self.sprite_count + 1;
+
+        // TODO: experimental
+        //self.indices = generate_batch_indices(self.sprite_count);
+        //self.ibo.bind();
+        //self.ibo.static_draw_data(&self.indices);
+        //self.ibo.unbind();
     }
 
     pub fn set_clear_color(&mut self, r: u8, g: u8, b: u8, a: f32) {
@@ -238,6 +244,8 @@ impl Renderer2D {
             }
         }
 
+        self.vbo.bind();
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -269,7 +277,9 @@ impl Renderer2D {
             );
         }
 
+        self.vbo.unbind();
         self.vao.unbind();
+        self.ibo.unbind();
 
         if let Some(render_target) = &mut self.render_target {
             render_target.unbind();

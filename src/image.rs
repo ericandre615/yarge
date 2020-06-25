@@ -49,8 +49,9 @@ pub struct Orientation {
 
 pub struct Image {
     program: helpers::Program,
-    _vbo: buffer::ArrayBuffer,
+    vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
+    ibo: buffer::ElementArrayBuffer,
     attrib_texcoord_location: i32,
     uniform_mvp: i32,
     uniform_color: i32,
@@ -99,12 +100,12 @@ impl Image {
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
-        vbo.unbind();
+//        vbo.unbind();
 
         let vao = buffer::VertexArray::new();
 
         vao.bind();
-        vbo.bind();
+//        vbo.bind();
 
         Vertex::vertex_attrib_pointers();
 
@@ -122,8 +123,9 @@ impl Image {
 
         Ok(Image {
             program,
-            _vbo: vbo,
+            vbo,
             vao,
+            ibo,
             image,
             attrib_texcoord_location,
             uniform_mvp,
@@ -235,6 +237,7 @@ impl Image {
         self.program.set_uniform_mat4f(self.uniform_texcoord_transform, &texcoord_transform);
         self.program.set_uniform_1i(self.uniform_texsampler, self.image.texture_slot as i32);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -245,6 +248,9 @@ impl Image {
                 self.indicies.as_ptr() as *const gl::types::GLvoid
             );
         }
+
+        self.vao.unbind();
+        self.ibo.unbind();
     }
 }
 

@@ -19,6 +19,7 @@ pub mod renderer;
 pub mod debug;
 pub mod sprite;
 pub mod tilemaps;
+pub mod font;
 
 use helpers::{data};
 use helpers::timer::{Timer};
@@ -26,9 +27,12 @@ use resources::Resources;
 use camera::*;
 use sprite::*;
 use tilemaps::*;
+use font::{FontRenderer};
 
-const WIDTH: u32 = 720;
-const HEIGHT: u32 = 480;
+use rusttype::{point};
+
+const WIDTH: u32 = 1024;//720;
+const HEIGHT: u32 = 780;//480;
 
 fn main() {
     if let Err(e) = run() {
@@ -40,6 +44,7 @@ fn run() -> Result<(), failure::Error> {
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
+    let initial_dpi = video_subsystem.display_dpi(0).unwrap(); // 0 = window/display number?
 
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
@@ -71,21 +76,26 @@ fn run() -> Result<(), failure::Error> {
     texture_manager.add("ninja_spritesheet", spritesheet_texture);
     //let ninja_texture = texture_manager.get(ninja_t);
 
-    print!("Ninja_TEXTURE {:?}", texture_manager.get("ninja"));
-    print!("Mario_TEXTURE {:?}", texture_manager.get("mario"));
-
     renderer.set_clear_color(30, 30, 30, 1.0);
+
+    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
+    font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
+
+    println!("TEXT_RENDER: {:#?}", font_renderer);
+    println!("TEXT_FONT: {:#?}", font_renderer.fonts.get("dejavu").unwrap());
+    println!("TEXT_FONT_COUNT: {:#?}", font_renderer.fonts.get("dejavu").unwrap().glyph_count());
 
     // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
     // a very primitively implemented light
-    let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
-    renderer.set_ppe_program(&lighting_program);
+    //let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
+    //renderer.set_ppe_program(&lighting_program);
 
-    lighting_program.set_used();
-    let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
-    let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
-    lighting_program.set_uniform_1f(uniform_intensity, 0.45);
-    lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
+    //lighting_program.set_used();
+    //let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
+    //let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
+    //lighting_program.set_uniform_1f(uniform_intensity, 0.45);
+    //lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -108,6 +118,7 @@ fn run() -> Result<(), failure::Error> {
     })?;
 
     let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
+    let mut ui_camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
     let mut image2 = image::Image::new(
         &res,
@@ -255,6 +266,28 @@ fn run() -> Result<(), failure::Error> {
 
     let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
 
+    let my_text = font::Text::new(
+        "Hello OpenGL".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 200.0,
+            size: 62.0.into(),
+            pos: (0.0, 0.0),
+            color: (255, 255, 0, 0.58),
+        }
+    );
+    let my_text_b = font::Text::new(
+        "Retro Style Games".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 600.0,
+            size: 24.0.into(),
+            pos: (40.0, 40.0),
+            color: (100, 100, 100, 1.0),
+        }
+    );
+
+
     'main: loop {
         timer.tick();
         for event in event_pump.poll_iter() {
@@ -268,6 +301,7 @@ fn run() -> Result<(), failure::Error> {
                     viewport.set_used();
 
                     camera.update_viewport(viewport.w, viewport.h);
+                    ui_camera.update_viewport(viewport.w, viewport.h);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
@@ -370,6 +404,21 @@ fn run() -> Result<(), failure::Error> {
         renderer.end_batch();
         renderer.render(&camera);
         renderer.end_scene();
+
+       let jp_text = font::Text::new(
+           "こんにちは　世界".to_string(),
+           font::TextSettings {
+               font: "cjk".to_string(),
+               width: 1000.0,
+               size: 72.0.into(),
+               pos: (200.0, 80.0),
+               color: (0, 150, 50, 1.0),
+           }
+       );
+
+        font_renderer.render(&my_text, &ui_camera);
+        font_renderer.render(&my_text_b, &ui_camera);
+        font_renderer.render(&jp_text, &ui_camera);
 
         window.gl_swap_window();
     }
