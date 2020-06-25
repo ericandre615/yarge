@@ -170,7 +170,6 @@ impl<'a> FontRenderer<'a> {
 
         let mut should_print = true;
         for glyph in &glyphs {
-            println!("Glyph F {:#?}", glyph);
             self.cache.queue_glyph(0/* font_id */, glyph.clone());
         }
 
