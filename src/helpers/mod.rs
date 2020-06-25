@@ -4,7 +4,7 @@ pub mod timer;
 pub mod system;
 mod color_buffer;
 mod shader;
-mod viewport;
+pub mod viewport;
 
 pub use self::color_buffer::ColorBuffer;
 pub use self::shader::{Shader, Program, Error};

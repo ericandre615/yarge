@@ -1,33 +1,24 @@
 #[macro_use] extern crate failure;
-#[macro_use] extern crate gl_vertex_derive;
 
 extern crate sdl2;
 extern crate gl;
 extern crate nalgebra_glm as glm;
-extern crate vec_2_10_10_10;
 
 use std::path::Path;
 
-pub mod helpers;
-pub mod resources;
-pub mod textures;
-pub mod triangle;
-pub mod rectangle;
-pub mod image;
-pub mod camera;
-pub mod renderer;
-pub mod debug;
-pub mod sprite;
-pub mod tilemaps;
-pub mod font;
-
-use helpers::{data};
-use helpers::timer::{Timer};
-use resources::Resources;
-use camera::*;
-use sprite::*;
-use tilemaps::*;
-use font::{FontRenderer};
+use yarge::helpers::*;
+use yarge::helpers::{data};
+use yarge::helpers::timer::{Timer};
+use yarge::resources::Resources;
+use yarge::camera::*;
+use yarge::sprite::*;
+use yarge::tilemaps::*;
+use yarge::renderer;
+use yarge::textures;
+use yarge::{font, image, debug};
+use yarge::font::FontRenderer;
+use yarge::{Triangle};
+use yarge::{Rectangle, RectangleProps};
 
 use rusttype::{point};
 
@@ -59,7 +50,7 @@ fn run() -> Result<(), failure::Error> {
     let _gl_context = window.gl_create_context().unwrap();
     let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
     let mut event_pump = sdl.event_pump().unwrap();
-    let mut viewport = helpers::Viewport::for_window(WIDTH as f32, HEIGHT as f32);
+    let mut viewport = Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let mut texture_manager = textures::TextureManager::new(&res);
@@ -81,11 +72,6 @@ fn run() -> Result<(), failure::Error> {
     let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
     font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
-
-    println!("TEXT_RENDER: {:#?}", font_renderer);
-    println!("TEXT_FONT: {:#?}", font_renderer.fonts.get("dejavu").unwrap());
-    println!("TEXT_FONT_COUNT: {:#?}", font_renderer.fonts.get("dejavu").unwrap().glyph_count());
-
     // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
     // a very primitively implemented light
     //let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
@@ -97,20 +83,20 @@ fn run() -> Result<(), failure::Error> {
     //lighting_program.set_uniform_1f(uniform_intensity, 0.45);
     //lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
-    let triangle = triangle::Triangle::new(&res)?;
-    let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
+    let triangle = Triangle::new(&res)?;
+    let rect1 = Rectangle::new(&res, &RectangleProps {
         width: 256.0,
         height: 256.0,
         pos: (20.0, 20.0),
         color: (1.0, 0.0, 0.0, 1.0),
     })?;
-    let rect2 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
+    let rect2 = Rectangle::new(&res, &RectangleProps {
         width: 256.0,
         height: 256.0,
         pos: (40.0, 40.0),
         color: (0.0, 1.0, 0.0, 0.8),
     })?;
-    let rect3 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
+    let rect3 = Rectangle::new(&res, &RectangleProps {
         width: 210.0,
         height: 210.0,
         pos: (180.0, 80.0),
