@@ -1,12 +1,13 @@
 [package]
 name = "raw-gl"
-version = "0.1.0"
+version = "0.2.1"
 authors = ["Eric Andre <ericandre615@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+gl_vertex_derive = { path = "gl_vertex_derive" }
 #sdl2 = { version = "0.32.2", features = ["bundled", "static-link"] }
 sdl2 = "0.32.2"
 gl = "0.14.0"
@@ -15,7 +16,10 @@ vec-2-10-10-10 = "0.1.2"
 image = "0.22"
 failure = "0.1"
 nanoid = "0.3.0"
-gl_vertex_derive = { path = "gl_vertex_derive" }
+serde = { version = "~1.0.104", features = ["derive"] }
+serde_json = "~1.0.48"
+rusttype = { version = "0.8.2", features = ["gpu_cache"] }
+unicode-normalization = "0.1.8"
 
 [build-dependencies]
 walkdir = "2.1"

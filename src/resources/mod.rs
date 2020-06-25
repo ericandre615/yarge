@@ -1,4 +1,7 @@
 use image::{ImageResult, DynamicImage, ImageError};
+use serde_json;
+
+use rusttype::{Font, FontCollection};
 
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -13,8 +16,10 @@ pub enum Error {
     FileContainsNil,
     #[fail(display = "Failed to get executable path")]
     FailedToGetExePath,
-    #[fail(display = "Failed ot load image")]
+    #[fail(display = "Failed to load image")]
     FailedToLoadImage,
+    #[fail(display = "Failed to load json")]
+    FailedToLoadJson,
 }
 
 impl From<io::Error> for Error {
@@ -64,6 +69,27 @@ impl Resources {
         let image = image::open(file_path); // .ok().expect(Error::FailedToLoadImage);
 
         image
+    }
+
+    pub fn load_from_json(&self, path: &str) -> Result<serde_json::Value, failure::Error> {
+        let file_path = resource_name_to_path(&self.root_path, path);
+        let mut file_contents = String::new();
+        let mut file = fs::File::open(file_path)?;
+
+        file.read_to_string(&mut file_contents)?;
+
+        let json: serde_json::Value = serde_json::from_str(&file_contents)?;
+
+        Ok(json)
+    }
+
+    pub fn load_font(&self, path: &str) -> Result<Font, failure::Error> {
+        let font_path = resource_name_to_path(&self.root_path, path);
+        let font_data = std::fs::read(font_path)?;
+        let font = FontCollection::from_bytes(font_data).unwrap()
+            .into_font().expect("Error loading Font");
+
+        Ok(font)
     }
 }
 

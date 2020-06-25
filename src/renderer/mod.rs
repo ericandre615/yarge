@@ -1,4 +1,6 @@
 pub mod layers;
+mod batch_shaders;
+mod render_target;
 
 use std::collections::HashMap;
 
@@ -7,6 +9,8 @@ use layers::*;
 use crate::helpers::{self, data, buffer, system};
 use crate::camera::*;
 use crate::sprite::{Sprite};
+use render_target::{RenderTarget};
+use batch_shaders::{create_fragment_source, create_vertex_source};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -20,32 +24,44 @@ pub struct BatchVertex {
     color: data::f32_f32_f32_f32,
     #[location=3]
     tex_id: data::f32_,
+    #[location=4]
+    tex_translate: data::f32_f32_f32,
+    #[location=5]
+    tex_scale: data::f32_f32_f32,
 }
 
-pub struct Renderer2D<'s> {
+pub struct Renderer2D {
     program: helpers::Program,
     vertices: Vec<Vec<BatchVertex>>,
     indices: Vec<[i32; 6]>,
-    sprites: Vec<&'s Sprite>,
     layers: Layers,
     vbo: buffer::DynamicArrayBuffer,
     vao: buffer::VertexArray,
     ibo: buffer::ElementArrayBuffer,
-    clear_color: (u8, u8, u8, f32),
+    clear_color: (f32, f32, f32, f32),
     max_textures: gl::types::GLint,
     max_sprites: usize,
     texture_slots: Vec<i32>,
     uniforms: HashMap<String, i32>,
+    sprite_count: usize,
+    render_target: Option<RenderTarget>,
 }
 
-impl<'s> Renderer2D<'s> {
+impl Renderer2D {
     pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
-        let default_clear_color = (255, 255, 255, 1.0);
+        let default_clear_color = (1.0, 1.0, 1.0, 1.0);
         let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 4000) as gl::types::GLsizeiptr;
         let max_sprites = 1000;
         let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
         let max_textures = system::SystemInfo::get_max_textures();
-        let program = helpers::Program::from_resource(res, "shaders/batch")?;
+        let vert_src = create_vertex_source();
+        let frag_src = create_fragment_source(max_textures);
+        let shaders = vec![
+            helpers::Shader::from_raw(&vert_src, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&frag_src, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/batch")
+            .expect("Failed to load Batch Renderer Shader Program");
         let uniform_textures = program.get_uniform_location("Textures")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let texture_slots = Vec::with_capacity(max_textures as usize);
@@ -58,10 +74,10 @@ impl<'s> Renderer2D<'s> {
 
         vbo.bind();
         vbo.set_buffer_data();
-        vbo.unbind();
+        //vbo.unbind();
 
         vao.bind();
-        vbo.bind();
+        //vbo.bind();
 
         BatchVertex::vertex_attrib_pointers();
 
@@ -76,7 +92,6 @@ impl<'s> Renderer2D<'s> {
             program,
             vertices: Vec::new(),
             indices,
-            sprites: Vec::new(),
             layers: Layers::new(),
             vbo,
             vao,
@@ -84,71 +99,66 @@ impl<'s> Renderer2D<'s> {
             clear_color: default_clear_color,
             max_textures,
             max_sprites,
+            sprite_count: 0,
             texture_slots,
             uniforms: vec![
                 ("textures".to_owned(), uniform_textures),
                 ("mvp".to_owned(), uniform_mvp),
             ].into_iter().collect(),
+            render_target: None,
         })
     }
 
-    pub fn begin_scene(camera: &Camera) {
+    pub fn begin_scene(&mut self, camera: &Camera) {
+        let (width, height) = camera.get_dimensions();
+        //self.render_target = Some(
+        //    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+        //);
+
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
+                );
+            },
+        }
     }
 
-    pub fn end_scene() {
+    pub fn set_ppe_program(&mut self, program: &helpers::Program) {
+        match &mut self.render_target {
+            Some(_) => {},
+            None => {
+                self.render_target = Some(
+                    RenderTarget::new(10, 10).expect("Could not create RenderTarget")
+                );
+            },
+        }
+
+        if let Some(render_target) = &mut self.render_target {
+            render_target.set_program(program.clone()); // not sure about cloning programs
+        }
+    }
+
+    pub fn end_scene(&self) {
 
     }
 
     pub fn begin_batch(&mut self) {
-        // TODO: reset pointer into the vertex data buffer
-        // keep track of where we are in the buffer to put data
+        self.vbo.bind();
+        self.vbo.reset_buffer_offset();
     }
 
     pub fn end_batch(&mut self) {
-        self.vbo.bind();
-        self.vbo.reset_buffer_offset();
-
-        for sprite in &self.sprites {
-            let sprite_vertices = sprite.get_vertices();
-            let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
-            let sprite_tex_id = self.texture_slots.iter().position(|&id| id == sprite_texture_handle).unwrap_or(0); // should use a single reserved slot for blank white texture or a debug texture
-
-            let mut batch_vertices: Vec<BatchVertex> = Vec::new();
-            for vertex in sprite_vertices {
-                batch_vertices.push(
-                    BatchVertex {
-                        pos: vertex.get_pos(),
-                        tex: vertex.get_tex(),
-                        color: vertex.get_color(),
-                        tex_id: (sprite_tex_id as u32).into(),
-                    }
-                );
-            };
-
-            //TODO: might need to have some conversion from SpriteVertex to BatchVertex
-            self.vbo.upload_draw_data(&batch_vertices);
-            self.vbo.set_buffer_offset(self.vbo.buffer_offset + ((::std::mem::size_of::<BatchVertex>()) * 4) as isize);
-
-            self.vertices.push(batch_vertices);
-        }
-
+        self.sprite_count = 0;
         self.vbo.reset_buffer_offset();
         self.vbo.unbind();
     }
 
-    pub fn submit(&mut self, sprite: &'s Sprite) {  // TODO: testing, should be able to submit many sprites at once
-        let has_sprite = self.sprites.contains(&sprite);
-
-        if has_sprite {
-            println!("Sprite already submitted");
-            return ();
+    pub fn submit(&mut self, sprite: &Sprite) {
+        if self.sprite_count >= self.max_sprites {
+            // need to reset/end/flush/render/begin new batch and reset sprite_count
         }
-
-        if self.sprites.len() >= self.max_sprites {
-            // need to reset/end/flush/render and start a new batch
-        }
-
-        self.sprites.push(sprite); // TODO: sprite should be reference?
 
         let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
         let tex_id: i32 = match self.texture_slots.binary_search(&sprite_texture_handle) {
@@ -166,12 +176,45 @@ impl<'s> Renderer2D<'s> {
                 next_id as i32
             },
         };
+
+
+        let sprite_vertices = sprite.get_vertices();
+        let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
+        let sprite_tex_id = self.texture_slots.iter().position(|&id| id == sprite_texture_handle).unwrap_or(0); // should use a single reserved slot for blank white texture or a debug texture
+
+        let mut batch_vertices: Vec<BatchVertex> = Vec::new();
+        for vertex in sprite_vertices {
+            batch_vertices.push(
+                BatchVertex {
+                    pos: vertex.get_pos(),
+                    tex: vertex.get_tex(),
+                    color: vertex.get_color(),
+                    tex_id: (sprite_tex_id as u32).into(),
+                    tex_translate: vertex.get_texture_translate(),
+                    tex_scale: vertex.get_texture_scale(),
+                }
+            );
+        };
+
+        self.vbo.upload_draw_data(&batch_vertices);
+        self.vbo.set_buffer_offset(self.vbo.buffer_offset + ((::std::mem::size_of::<BatchVertex>()) * 4) as isize);
+
+        self.vertices.push(batch_vertices);
+        self.sprite_count = self.sprite_count + 1;
+
+        // TODO: experimental
+        //self.indices = generate_batch_indices(self.sprite_count);
+        //self.ibo.bind();
+        //self.ibo.static_draw_data(&self.indices);
+        //self.ibo.unbind();
     }
 
     pub fn set_clear_color(&mut self, r: u8, g: u8, b: u8, a: f32) {
         let rf = r as f32 / 255.0;
         let gf = g as f32 / 255.0;
         let bf = b as f32 / 255.0;
+
+        self.clear_color = (rf, gf, bf, a);
 
         unsafe {
             gl::ClearColor(rf, gf, bf, a);
@@ -185,9 +228,24 @@ impl<'s> Renderer2D<'s> {
     }
 
     pub fn render(&mut self, camera: &Camera) {
-        //self.clear();
+        let (cam_width, cam_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
-        println!("TEXTURE_SLOTS: {:?}", self.texture_slots);
+
+        if let Some(render_target) = &mut self.render_target {
+            render_target.update_fbo_size(cam_width as u32, cam_height as u32);
+            render_target.bind();
+            let (r, g, b, a) = self.clear_color;
+
+            unsafe {
+                // clear the fbo screen, set the default screen color back to what it was
+                gl::ClearColor(0.0, 0.0, 0.0, 0.0);
+                gl::Clear(gl::COLOR_BUFFER_BIT);
+                gl::ClearColor(r, g, b, a);
+            }
+        }
+
+        self.vbo.bind();
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -219,9 +277,18 @@ impl<'s> Renderer2D<'s> {
             );
         }
 
+        self.vbo.unbind();
         self.vao.unbind();
+        self.ibo.unbind();
 
-        self.sprites = Vec::new();
+        if let Some(render_target) = &mut self.render_target {
+            render_target.unbind();
+            //unsafe {
+            //    gl::Clear(gl::COLOR_BUFFER_BIT);
+            //}
+            render_target.render();
+        }
+
         self.texture_slots = Vec::new();
     }
 }

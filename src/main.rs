@@ -11,22 +11,28 @@ use std::path::Path;
 pub mod helpers;
 pub mod resources;
 pub mod textures;
-mod triangle;
-mod rectangle;
-mod image;
-mod camera;
-mod renderer;
-mod debug;
-mod sprite;
+pub mod triangle;
+pub mod rectangle;
+pub mod image;
+pub mod camera;
+pub mod renderer;
+pub mod debug;
+pub mod sprite;
+pub mod tilemaps;
+pub mod font;
 
 use helpers::{data};
 use helpers::timer::{Timer};
 use resources::Resources;
 use camera::*;
 use sprite::*;
+use tilemaps::*;
+use font::{FontRenderer};
 
-const WIDTH: u32 = 720;
-const HEIGHT: u32 = 480;
+use rusttype::{point};
+
+const WIDTH: u32 = 1024;//720;
+const HEIGHT: u32 = 780;//480;
 
 fn main() {
     if let Err(e) = run() {
@@ -38,12 +44,13 @@ fn run() -> Result<(), failure::Error> {
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
     let gl_attr = video_subsystem.gl_attr();
+    let initial_dpi = video_subsystem.display_dpi(0).unwrap(); // 0 = window/display number?
 
     gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("Demo", WIDTH, HEIGHT)
+        .window("Yarge", WIDTH, HEIGHT)
         .opengl()
         .resizable()
         .build()
@@ -58,19 +65,37 @@ fn run() -> Result<(), failure::Error> {
     let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
-    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string(), 0)?;
-    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string(), 0)?;
+    let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string())?;
+    let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string())?;
+    let spritesheet_texture = textures::texture::Texture::new(&res, "images/ninja-gaiden-spritesheet.png".to_string())?;
     texture_manager.create("ninja", "images/ninja-gaiden.gif");
     //texture_manager.create("test", "images/test.png");
     texture_manager.create("test_b", "images/test_b.png");
     texture_manager.add("mario", mario_texture);
     texture_manager.add("test", test_texture);
+    texture_manager.add("ninja_spritesheet", spritesheet_texture);
     //let ninja_texture = texture_manager.get(ninja_t);
 
-    print!("Ninja_TEXTURE {:?}", texture_manager.get("ninja"));
-    print!("Mario_TEXTURE {:?}", texture_manager.get("mario"));
-
     renderer.set_clear_color(30, 30, 30, 1.0);
+
+    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
+    font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
+
+    println!("TEXT_RENDER: {:#?}", font_renderer);
+    println!("TEXT_FONT: {:#?}", font_renderer.fonts.get("dejavu").unwrap());
+    println!("TEXT_FONT_COUNT: {:#?}", font_renderer.fonts.get("dejavu").unwrap().glyph_count());
+
+    // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
+    // a very primitively implemented light
+    //let lighting_program = helpers::Program::from_resource(&res, "shaders/basic-light")?;
+    //renderer.set_ppe_program(&lighting_program);
+
+    //lighting_program.set_used();
+    //let uniform_intensity = lighting_program.get_uniform_location("Intensity")?;
+    //let uniform_lightpos = lighting_program.get_uniform_location("LightPosition")?;
+    //lighting_program.set_uniform_1f(uniform_intensity, 0.45);
+    //lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
     let triangle = triangle::Triangle::new(&res)?;
     let rect1 = rectangle::Rectangle::new(&res, &rectangle::RectangleProps {
@@ -93,6 +118,7 @@ fn run() -> Result<(), failure::Error> {
     })?;
 
     let mut camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
+    let mut ui_camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
     let mut image2 = image::Image::new(
         &res,
@@ -131,6 +157,15 @@ fn run() -> Result<(), failure::Error> {
         }
     )?;
 
+    let mut spritesheet_as_sprite = Sprite::from_texture(
+        texture_manager.get("ninja_spritesheet"),
+        SpriteProps {
+            pos: (220.0, 200.0, 0.0),
+            dim: (256, 256),
+            ..Default::default()
+        }
+    )?;
+
     let mut some_sprite = Sprite::from_texture(
         texture_manager.get("test"),
         SpriteProps {
@@ -162,6 +197,7 @@ fn run() -> Result<(), failure::Error> {
     image3.set_texture_scale(0.75, 0.75);
     image3.set_frame((-40, 40));
     spritesheet.set_frame((256, 0));
+    spritesheet_as_sprite.set_frame((246.0, 0.0));
 
     let sprite_frames = [
         (0, 0),(0, 0),(0, 0),(0, 0),
@@ -192,7 +228,7 @@ fn run() -> Result<(), failure::Error> {
         );
         let alpha = match i {
             3 => 1.0,
-            _ => (80.0 - (i as f32 * 2.0)) / 255.0,
+            _ => (90.0 - (i as f32 * 2.0)) / 255.0,
         };
         let mut batch_sprite = Sprite::from_texture(
             texture_manager.get("ninja"),
@@ -215,15 +251,42 @@ fn run() -> Result<(), failure::Error> {
         },
     )?;
 
+    mario_as_sprite.set_texture_scale((scale_ix, scale_iy));
+    //mario_as_sprite.set_frame((0.0, 210.0));
+
     let mut ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
-            pos: (400.0, 40.0, 0.0),
+            pos: (400.0, 40., 0.0),
             dim: (256, 256),
             color: (255, 255, 255, 1.0),
             texture_slot: 7
         },
     )?;
+
+    let tilemap = Tilemap::from_json(&res, "tilemaps/tilemap_test.json".to_string())?;
+
+    let my_text = font::Text::new(
+        "Hello OpenGL".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 200.0,
+            size: 62.0.into(),
+            pos: (0.0, 0.0),
+            color: (255, 255, 0, 0.58),
+        }
+    );
+    let my_text_b = font::Text::new(
+        "Retro Style Games".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 600.0,
+            size: 24.0.into(),
+            pos: (40.0, 40.0),
+            color: (100, 100, 100, 1.0),
+        }
+    );
+
 
     'main: loop {
         timer.tick();
@@ -238,6 +301,7 @@ fn run() -> Result<(), failure::Error> {
                     viewport.set_used();
 
                     camera.update_viewport(viewport.w, viewport.h);
+                    ui_camera.update_viewport(viewport.w, viewport.h);
                 },
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
@@ -314,12 +378,13 @@ fn run() -> Result<(), failure::Error> {
 
         spritesheet.set_frame(sprite_frames[i]);
 
+        spritesheet_as_sprite.set_frame((sprite_frames[i].0 as f32, sprite_frames[i].1 as f32));
+
         i += 1;
 
         if i >= sprite_frames.len() - 1 { i = 0; }
 
-        //renderer.clear(); // DEBUG: only
-
+        renderer.begin_scene(&camera);
         renderer.begin_batch();
 
         for s in &vbs {
@@ -330,9 +395,30 @@ fn run() -> Result<(), failure::Error> {
         renderer.submit(&some_other_sprite);
         renderer.submit(&mario_as_sprite);
         renderer.submit(&ninja_as_sprite);
+        renderer.submit(&spritesheet_as_sprite);
+
+        for ts in tilemap.get_vertices() {
+            renderer.submit(&ts);
+        }
 
         renderer.end_batch();
         renderer.render(&camera);
+        renderer.end_scene();
+
+       let jp_text = font::Text::new(
+           "こんにちは　世界".to_string(),
+           font::TextSettings {
+               font: "cjk".to_string(),
+               width: 1000.0,
+               size: 72.0.into(),
+               pos: (200.0, 80.0),
+               color: (0, 150, 50, 1.0),
+           }
+       );
+
+        font_renderer.render(&my_text, &ui_camera);
+        font_renderer.render(&my_text_b, &ui_camera);
+        font_renderer.render(&jp_text, &ui_camera);
 
         window.gl_swap_window();
     }

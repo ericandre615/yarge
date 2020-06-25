@@ -48,6 +48,8 @@ pub enum Error {
     },
 }
 
+// TODO: not really sure if this should be clonable, but it seems to work??
+#[derive(Debug, Clone)]
 pub struct Program {
     id: gl::types::GLuint,
     name: String,
@@ -286,6 +288,15 @@ impl Shader {
 
         Shader::from_source(&source, shader_kind).map_err(|message| Error::CompileError {
             name: name.into(),
+            message,
+        })
+    }
+
+    pub fn from_raw(source: &str, shader_kind: gl::types::GLenum) -> Result<Shader, Error> {
+        let c_source = CString::new(source).unwrap();
+
+        Shader::from_source(&c_source, shader_kind).map_err(|message| Error::CompileError {
+            name: format!("Raw Shader Source: {}", shader_kind),
             message,
         })
     }

@@ -3,7 +3,7 @@ use std::ffi::{CString, c_void};
 
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
-use crate::textures::texture::{Texture, TextureBuilder};
+use crate::textures::texture::{Texture};
 use crate::textures::transform::{TextureTransform};
 use crate::camera::{Camera};
 
@@ -49,8 +49,9 @@ pub struct Orientation {
 
 pub struct Image {
     program: helpers::Program,
-    _vbo: buffer::ArrayBuffer,
+    vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
+    ibo: buffer::ElementArrayBuffer,
     attrib_texcoord_location: i32,
     uniform_mvp: i32,
     uniform_color: i32,
@@ -74,9 +75,7 @@ impl Image {
         let uniform_color = program.get_uniform_location("TexColor")?;
         let uniform_texcoord_transform = program.get_uniform_location("TexCoordTransform")?;
         let uniform_texsampler = program.get_uniform_location("TexSampler")?;
-        let texture = TextureBuilder::new(res, image.img_path.to_string())
-            .with_texture_slot(image.texture_slot)
-            .build()?;
+        let texture = Texture::new(res, image.img_path.to_string())?;
         let (tw, th) = texture.get_dimensions();
         let (x, y) = image.pos;
         let (width, height) = image.dim;
@@ -101,12 +100,12 @@ impl Image {
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
-        vbo.unbind();
+//        vbo.unbind();
 
         let vao = buffer::VertexArray::new();
 
         vao.bind();
-        vbo.bind();
+//        vbo.bind();
 
         Vertex::vertex_attrib_pointers();
 
@@ -124,8 +123,9 @@ impl Image {
 
         Ok(Image {
             program,
-            _vbo: vbo,
+            vbo,
             vao,
+            ibo,
             image,
             attrib_texcoord_location,
             uniform_mvp,
@@ -214,6 +214,10 @@ impl Image {
         self.texture_transform.set_scale(x, y);
     }
 
+    pub fn set_texture_slot(&mut self, slot: u32) {
+        self.image.texture_slot = slot;
+    }
+
     pub fn render(&self, camera: &Camera, dt: f32) {
         let scale_x = match self.orientation.horizontal {
             Direction::Normal => 1.0,
@@ -227,13 +231,13 @@ impl Image {
         let mvp = camera.get_projection() * camera.get_view() * model;//self.model;
         let texcoord_transform = self.texture_transform.get_transform();
 
-        // call BindTexture again for render to draw the right image for each image/object
-        self.texture.bind();
+        self.texture.bind_to_unit(self.image.texture_slot);
         self.program.set_used();
         self.program.set_uniform_4f(self.uniform_color, self.color);
         self.program.set_uniform_mat4f(self.uniform_texcoord_transform, &texcoord_transform);
-        self.program.set_uniform_1i(self.uniform_texsampler, self.texture.get_texture_offset() as i32);
+        self.program.set_uniform_1i(self.uniform_texsampler, self.image.texture_slot as i32);
         self.program.set_uniform_mat4f(self.uniform_mvp, &mvp);
+        self.ibo.bind();
         self.vao.bind();
 
         unsafe {
@@ -244,6 +248,9 @@ impl Image {
                 self.indicies.as_ptr() as *const gl::types::GLvoid
             );
         }
+
+        self.vao.unbind();
+        self.ibo.unbind();
     }
 }
 
