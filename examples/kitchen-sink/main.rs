@@ -52,7 +52,7 @@ fn run() -> Result<(), failure::Error> {
     let mut event_pump = sdl.event_pump().unwrap();
     let mut viewport = Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
-    let res = Resources::from_relative_path(Path::new("../assets")).unwrap();
+    let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let mut texture_manager = textures::TextureManager::new(&res);
     let mut renderer = renderer::Renderer2D::new(&res)?;
 
