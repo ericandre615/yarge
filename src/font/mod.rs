@@ -13,7 +13,7 @@ use crate::helpers::{self, data, buffer};
 use crate::resources::{Resources};
 use crate::camera::{Camera};
 
-use font_shaders::{get_font_shaders};
+use font_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 use layout::{basic_layout};
 use font_texture::{FontTexture, GlyphTexture};
 pub use text::{Text, TextSettings};
@@ -73,13 +73,12 @@ impl<'a> FontRenderer<'a> {
         let mut cache = Cache::builder()
             .dimensions(cache_width, cache_height)
             .build();
-        let (vert_src, frag_src) = get_font_shaders();
         let shaders = vec![
-            helpers::Shader::from_raw(&vert_src, gl::VERTEX_SHADER)?,
-            helpers::Shader::from_raw(&frag_src, gl::FRAGMENT_SHADER)?,
+            helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
         ];
-        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/text")
-            .expect("Failed to create Text Shader Program");
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/font")
+            .expect("Failed to create Font Shader Program");
         let uniform_texture = program.get_uniform_location("GlyphTexture")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let max_buffer_size = ((::std::mem::size_of::<GlyphVertex>()) * 4000) as gl::types::GLsizeiptr;

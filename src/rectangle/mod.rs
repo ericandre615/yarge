@@ -1,7 +1,11 @@
+mod rect_shaders;
+
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
 
 use crate::camera::{Camera};
+
+use rect_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -45,7 +49,12 @@ pub struct Rectangle {
 
 impl Rectangle {
     pub fn new(res: &Resources, props: &RectangleProps) -> Result<Rectangle, failure::Error> {
-        let program = helpers::Program::from_resource(res, "shaders/rectangle")?;
+        let shaders = vec![
+            helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/rectangle")
+            .expect("Failed to create Rectangle Shader Program");
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("Color")?;
         let pos = props.pos;

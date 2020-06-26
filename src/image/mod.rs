@@ -1,3 +1,5 @@
+mod image_shaders;
+
 use image::{ImageResult, DynamicImage, GenericImageView};
 use std::ffi::{CString, c_void};
 
@@ -6,6 +8,8 @@ use crate::resources::*;
 use crate::textures::texture::{Texture};
 use crate::textures::transform::{TextureTransform};
 use crate::camera::{Camera};
+
+use image_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -69,7 +73,12 @@ pub struct Image {
 
 impl Image {
     pub fn new(res: &Resources, image: ImageProps) -> Result<Image, failure::Error> {
-        let program = helpers::Program::from_resource(res, "shaders/image")?;
+        let shaders = vec![
+            helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/image")
+            .expect("Failed to create Image Shader Program");
         let attrib_texcoord_location = program.get_attrib_location("TexCoord")?;
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("TexColor")?;

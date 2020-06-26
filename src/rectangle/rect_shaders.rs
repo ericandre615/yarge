@@ -1,3 +1,4 @@
+pub const VERTEX_SOURCE: &str = r#"
 #version 330 core
 
 layout (location = 0) in vec3 Position;
@@ -14,3 +15,19 @@ void main() {
 
     OUT.Color = Color;
 }
+"#;
+
+pub const FRAGMENT_SOURCE: &str = r#"
+#version 330 core
+
+in VS_OUTPUT {
+    vec4 Color;
+} IN;
+
+out vec4 Color;
+
+void main() {
+    Color = IN.Color;
+}
+"#;
+
