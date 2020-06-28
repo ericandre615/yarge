@@ -22,6 +22,7 @@ before diving deeper into using other games engines (although I have done some b
 ### Examples
 This repo will provide some examples that you can run showing off different features. These live in the `examples` folder and can be run with
 cargo using the `cargo run --example <name of example(folder)>`. Currently, there is only the one example that does all the features. `cargo run --example kitchen-sink`
-
+- `kitchen-sink`: everything everywhere example
+- `text`: Just text dynamically created by user typing
 
 All discussions, advice, ideas, etc welcome!
