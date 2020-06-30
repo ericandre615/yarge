@@ -15,8 +15,8 @@ fn main() {
         .join(env::var("PROFILE").unwrap());
 
     copy(
-        &manifest_dir.join("assets"),
-        &exe_path.join("assets"),
+        &manifest_dir.join("examples/assets"),
+        &exe_path.join("examples/assets"),
     );
 }
 

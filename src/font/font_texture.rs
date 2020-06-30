@@ -77,8 +77,13 @@ fn create_font_texture(cache_width: u32, cache_height: u32) -> gl::types::GLuint
 
     unsafe {
         gl::ActiveTexture(gl::TEXTURE0);
+
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
         gl::GenTextures(1, &mut texture_handle);
         gl::BindTexture(gl::TEXTURE_2D, texture_handle);
+
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);//gl::LINEAR as i32);

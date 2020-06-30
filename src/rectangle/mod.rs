@@ -1,7 +1,11 @@
+mod rect_shaders;
+
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
 
 use crate::camera::{Camera};
+
+use rect_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -45,15 +49,21 @@ pub struct Rectangle {
 
 impl Rectangle {
     pub fn new(res: &Resources, props: &RectangleProps) -> Result<Rectangle, failure::Error> {
-        let program = helpers::Program::from_resource(res, "shaders/rectangle")?;
+        let shaders = vec![
+            helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/rectangle")
+            .expect("Failed to create Rectangle Shader Program");
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("Color")?;
         let pos = props.pos;
-        let (x, y) = pos;
+        //let (x, y) = pos;
+        let (x, y) = (0.0, 0.0); // TODO: this kinda feels weird. Not sure the best way to approach this?
         let width = props.width;
         let height = props.height;
         let color = props.color;
-        let model = glm::translate(&glm::identity(), &glm::vec3(x, y, 0.0));
+        let model = glm::translate(&glm::identity(), &glm::vec3(pos.0, pos.1, 0.0));
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
         let vertices: Vec<Vertex> = vec![

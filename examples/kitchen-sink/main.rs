@@ -41,7 +41,7 @@ fn run() -> Result<(), failure::Error> {
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("Yarge", WIDTH, HEIGHT)
+        .window("Yarge | Kitchen Sink", WIDTH, HEIGHT)
         .opengl()
         .resizable()
         .build()

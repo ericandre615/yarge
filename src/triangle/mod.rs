@@ -1,5 +1,9 @@
+mod triangle_shaders;
+
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
+
+use triangle_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -19,7 +23,12 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(res: &Resources) -> Result<Triangle, failure::Error> {
-        let program = helpers::Program::from_resource(res, "shaders/triangle")?;
+        let shaders = vec![
+            helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
+            helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
+        ];
+        let program = helpers::Program::from_shaders(&shaders[..], "internal/shaders/triangle")
+            .expect("Failed to create Triangle Shader Program");
         let vertices: Vec<Vertex> = vec![
             // positions        // colors
            Vertex { pos: (-0.5, -0.5, 0.0).into(), clr: (1.0, 0.0, 0.0, 1.0).into() }, // bottom right
