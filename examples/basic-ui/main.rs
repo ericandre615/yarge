@@ -2,19 +2,23 @@
 
 extern crate sdl2;
 extern crate gl;
-extern crate nalgebra_glm as glm;
 
 use std::path::Path;
 
-use yarge::helpers::{Viewport};
+use yarge::helpers::*;
+use yarge::helpers::{data};
+use yarge::helpers::timer::{Timer};
 use yarge::resources::Resources;
 use yarge::camera::*;
 use yarge::renderer;
 use yarge::{font, debug};
 use yarge::font::FontRenderer;
+use yarge::{Rectangle, RectangleProps};
 
-const WIDTH: u32 = 1024;//720;
-const HEIGHT: u32 = 780;//480;
+use rusttype::{point};
+
+const WIDTH: u32 = 1024;
+const HEIGHT: u32 = 780;
 
 fn main() {
     if let Err(e) = run() {
@@ -32,7 +36,7 @@ fn run() -> Result<(), failure::Error> {
     gl_attr.set_context_version(3, 3);
 
     let window = video_subsystem
-        .window("Yarge | Font Rendering", WIDTH, HEIGHT)
+        .window("Yarge | Basic UI", WIDTH, HEIGHT)
         .opengl()
         .resizable()
         .build()
@@ -56,21 +60,41 @@ fn run() -> Result<(), failure::Error> {
 
     viewport.set_used();
 
-    let instruction_text = font::Text::new(
-        r#"
-Font Rendering Demo
-Use the keyboard to input new text dynamically
-        "#.to_string(),
+
+    let top_bar_text = font::Text::new(
+        "BAD BOIZE".to_string(),
         font::TextSettings {
             font: "dejavu".to_string(),
-            width: WIDTH as f32 - 40.0,
-            size: 32.0.into(),
+            width: viewport.w as f32 / 2.0,
+            size: 18.0.into(),
             pos: (20.0, 20.0),
-            color: (255, 255, 0, 0.58),
+            color: (255, 255, 255, 1.0),
         }
     );
 
-    let mut d_text: String = String::from("<yarge>$: ");
+    let mut left_sidebar = Rectangle::new(&res, &RectangleProps {
+        width: 280.0,
+        height: 400.0,
+        pos: (20.0, 100.0),
+        color: (0.75, 0.85, 0.45, 0.70),
+    })?;
+
+    let left_sidebar_text = font::Text::new(
+        "
+    Bacon ipsum dolor amet kielbasa turkey venison buffalo
+    filet mignon prosciutto boudin shoulder. Shoulder ground
+    round alcatra jerky, chicken pork chop fatback burgdoggen.
+    Pork brisket shoulder andouille kevin hamburger.
+    Beef ribs pork belly pork turducken venison short ribs.
+        ".to_string(),
+        font::TextSettings {
+            font: "dejavu".to_string(),
+            width: 240.0,
+            size: 16.0.into(),
+            pos: (40.0, 120.0),
+            color: (100, 100, 50, 1.0),
+        },
+    );
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -85,48 +109,28 @@ Use the keyboard to input new text dynamically
 
                     ui_camera.update_viewport(viewport.w, viewport.h);
                 },
-                sdl2::event::Event::KeyDown { keycode, .. } => {
-                    match keycode {
-                        Some(sdl2::keyboard::Keycode::Backspace) => {
-                            d_text.pop();
-                        },
-                        _ => {},
-                    }
-                },
-                sdl2::event::Event::TextInput { text, .. } => {
-                    d_text.push_str(&text);
-                },
                _ => {},
             }
         }
 
-        let dynamic_text = font::Text::new(
-            d_text.to_string(),
-            font::TextSettings {
-                font: "dejavu".to_string(),
-                width: viewport.w as f32 / 2.0,
-                size: 18.0.into(),
-                pos: (20.0, 140.0),
-                color: (255, 255, 255, 1.0),
-            }
-        );
-
-        let jp_text = font::Text::new(
-           "フォント・レンダリング".to_string(),
-           font::TextSettings {
-               font: "cjk".to_string(),
-               width: 1000.0,
-               size: 28.0.into(),
-               pos: (20.0, 100.0),
-               color: (0, 150, 50, 1.0),
-           }
-       );
+        // TODO: several issues, have to recreate this Rect in the loop every time
+        // just to get the width to change
+        // Rectangle should be able to have properties updated at any point, easily
+        // Also, renderer for batching can still only support Sprite, but should
+        // be able to support Rect or any other Renderable item
+        let top_bar = Rectangle::new(&res, &RectangleProps {
+            width: viewport.w,
+            height: 60.0,
+            pos: (0.0, 0.0),
+            color: (0.65, 0.65, 0.65, 1.0),
+        })?;
 
         renderer.clear();
+        top_bar.render(&ui_camera);
+        left_sidebar.render(&ui_camera);
 
-        font_renderer.render(&instruction_text, &ui_camera);
-        font_renderer.render(&jp_text, &ui_camera);
-        font_renderer.render(&dynamic_text, &ui_camera);
+        font_renderer.render(&left_sidebar_text, &ui_camera);
+        font_renderer.render(&top_bar_text, &ui_camera);
 
         window.gl_swap_window();
     }

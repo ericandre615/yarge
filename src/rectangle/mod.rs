@@ -58,11 +58,12 @@ impl Rectangle {
         let uniform_mvp = program.get_uniform_location("MVP")?;
         let uniform_color = program.get_uniform_location("Color")?;
         let pos = props.pos;
-        let (x, y) = pos;
+        //let (x, y) = pos;
+        let (x, y) = (0.0, 0.0); // TODO: this kinda feels weird. Not sure the best way to approach this?
         let width = props.width;
         let height = props.height;
         let color = props.color;
-        let model = glm::translate(&glm::identity(), &glm::vec3(x, y, 0.0));
+        let model = glm::translate(&glm::identity(), &glm::vec3(pos.0, pos.1, 0.0));
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
         let vertices: Vec<Vertex> = vec![

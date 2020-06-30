@@ -145,6 +145,10 @@ impl<'a> FontRenderer<'a> {
             .build();
     }
 
+    pub fn set_scale_factor(&mut self, display_dpi: f32) {
+        self.scale_factor = display_dpi;
+    }
+
     pub fn render(&mut self, text: &Text, camera: &Camera) {
         let (screen_width, screen_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
