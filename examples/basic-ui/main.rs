@@ -62,7 +62,7 @@ fn run() -> Result<(), failure::Error> {
 
 
     let top_bar_text = font::Text::new(
-        "BAD BOIZE".to_string(),
+        "YARGE UI".to_string(),
         font::TextSettings {
             font: "dejavu".to_string(),
             width: viewport.w as f32 / 2.0,
@@ -77,6 +77,13 @@ fn run() -> Result<(), failure::Error> {
         height: 400.0,
         pos: (20.0, 100.0),
         color: (0.75, 0.85, 0.45, 0.70),
+    })?;
+
+    let left_sidebar_sub = Rectangle::new(&res, &RectangleProps {
+        width: 280.0,
+        height: 200.0,
+        pos: (20.0, 520.0),
+        color: (0.85, 0.55, 0.25, 0.60),
     })?;
 
     let left_sidebar_text = font::Text::new(
@@ -124,10 +131,18 @@ fn run() -> Result<(), failure::Error> {
             pos: (0.0, 0.0),
             color: (0.65, 0.65, 0.65, 1.0),
         })?;
+        let mut main_content = Rectangle::new(&res, &RectangleProps {
+            width: viewport.w - 340.0,
+            height: 600.0,
+            pos: (320.0, 100.0),
+            color: (0.2, 0.2, 0.2, 0.80),
+        })?;
 
         renderer.clear();
         top_bar.render(&ui_camera);
         left_sidebar.render(&ui_camera);
+        left_sidebar_sub.render(&ui_camera);
+        main_content.render(&ui_camera);
 
         font_renderer.render(&left_sidebar_text, &ui_camera);
         font_renderer.render(&top_bar_text, &ui_camera);

@@ -24,5 +24,6 @@ This repo will provide some examples that you can run showing off different feat
 cargo using the `cargo run --example <name of example(folder)>`. Currently, there is only the one example that does all the features. `cargo run --example kitchen-sink`
 - `kitchen-sink`: everything everywhere example
 - `text`: Just text dynamically created by user typing
+- `basic-ui`: Basic UI style layout
 
 All discussions, advice, ideas, etc welcome!
