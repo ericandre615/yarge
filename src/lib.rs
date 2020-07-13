@@ -19,6 +19,7 @@ pub mod debug;
 pub mod sprite;
 pub mod tilemaps;
 pub mod font;
+pub mod ui;
 
 pub use triangle::{Triangle};
 pub use rectangle::{Rectangle, RectangleProps};

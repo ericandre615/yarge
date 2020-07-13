@@ -1,5 +1,6 @@
 use rusttype::{Scale};
 
+#[derive(Debug, Clone)]
 pub struct FontSize {
     pub scale: Scale
 }
@@ -16,6 +17,7 @@ impl From<f32> for FontSize {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct TextSettings {
     pub width: f32,
     pub font: String,
@@ -36,6 +38,7 @@ impl Default for TextSettings {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Text {
     pub text: String,
     pub settings: TextSettings,
