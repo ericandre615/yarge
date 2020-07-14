@@ -89,6 +89,16 @@ impl Resources {
 
         Ok(font)
     }
+
+    pub fn load_obj(&self, path: &str) -> Result<String, failure::Error> {
+        let file_path = resource_name_to_path(&self.root_path, path);
+        let mut contents = String::new();
+        let mut file = fs::File::open(file_path)?;
+
+        file.read_to_string(&mut contents)?;
+
+        Ok(contents)
+    }
 }
 
 fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
