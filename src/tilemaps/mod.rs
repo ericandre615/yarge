@@ -6,6 +6,7 @@ use std::path::Path;
 
 use crate::resources::*;
 use crate::textures::texture::*;
+use crate::renderer::renderable::{Renderable2D, RenderVertex};
 use crate::sprite::{Sprite, SpriteProps};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -71,6 +72,24 @@ pub struct Tilemap {
     tileset: Tileset,
     // TODO: temporary here because easier to access, might need ot work with layers in some way?
     vertices: Vec<Sprite>,
+}
+
+impl Renderable2D for Tilemap {
+    fn texture(&self) -> u32 {
+        self.tileset.get_texture().texture_handle
+    }
+
+    fn vertices(&self) -> Vec<Box<RenderVertex>> {
+        let mut v = Vec::new();
+        for ts in &self.vertices {
+            let sv = ts.vertices();
+            for vs in sv {
+                v.push(vs);
+            }
+        }
+
+        v
+    }
 }
 
 impl Tilemap {

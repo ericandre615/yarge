@@ -2,6 +2,7 @@ use crate::helpers::{data};
 use crate::resources::*;
 use crate::textures::texture::{Texture};
 use crate::textures::transform::{TextureTransform};
+use crate::renderer::renderable::{Renderable2D, RenderVertex};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -19,24 +20,24 @@ pub struct SpriteVertex {
     tex_scale: data::f32_f32_f32,
 }
 
-impl SpriteVertex {
-    pub fn get_pos(&self) -> data::f32_f32_f32 {
+impl RenderVertex for SpriteVertex {
+    fn position(&self) -> data::f32_f32_f32 {
         self.pos
     }
 
-    pub fn get_tex(&self) -> data::f32_f32 {
+    fn uv(&self) -> data::f32_f32 {
         self.tex
     }
 
-    pub fn get_color(&self) -> data::f32_f32_f32_f32 {
+    fn color(&self) -> data::f32_f32_f32_f32 {
         self.color
     }
 
-    pub fn get_texture_translate(&self) -> data::f32_f32_f32 {
+    fn texture_translate(&self) -> data::f32_f32_f32 {
         self.tex_translate
     }
 
-    pub fn get_texture_scale(&self) -> data::f32_f32_f32 {
+    fn texture_scale(&self) -> data::f32_f32_f32 {
         self.tex_scale
     }
 }
@@ -59,8 +60,7 @@ impl Default for SpriteProps {
         }
     }
 }
-//let pos = glm::vec3(x, y, 0.0);
-//let model = glm::translate(&glm::identity(), &pos);
+
 #[derive(PartialEq, Debug)]
 pub struct SpriteTransform {
     translation: glm::Mat4,
@@ -130,6 +130,21 @@ pub struct Sprite {
     texture_transform: TextureTransform,
     image_path: String,
     props: SpriteProps,
+}
+
+impl Renderable2D for Sprite {
+    fn texture(&self) -> u32 {
+        self.texture.texture_handle
+    }
+
+    fn vertices(&self) -> Vec<Box<RenderVertex>> {
+        let mut v = Vec::new();
+        for sv in &self.vertices {
+            v.push(Box::new(*sv) as Box<RenderVertex>);
+        }
+
+        v
+    }
 }
 
 impl Sprite {

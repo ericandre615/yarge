@@ -208,8 +208,8 @@ fn run() -> Result<(), failure::Error> {
     let start_pos = (300.0, 300.0);
     for i in 0..4 {
         let pos = (
-            start_pos.0 + 200.0 + (i as f32 * 40.0),//+ 40.0 + (i * 20) as f32 + 200.0,
-            start_pos.1 - 100.0 - (i as f32 * 40.0),//- 20.0 - (i * 10) as f32 - 100.0,
+            start_pos.0 + 200.0 + (i as f32 * 40.0),
+            start_pos.1 - 100.0 - (i as f32 * 40.0),
             0.0
         );
         let alpha = match i {
@@ -221,7 +221,7 @@ fn run() -> Result<(), failure::Error> {
             SpriteProps {
                 pos: pos,
                 dim: (240, 240),
-                color: (255, 255, 255, alpha),//(20, 30, 80, 0.5),
+                color: (255, 255, 255, alpha),
                 texture_slot: 4,
             },
         )?;
@@ -383,9 +383,7 @@ fn run() -> Result<(), failure::Error> {
         renderer.submit(&ninja_as_sprite);
         renderer.submit(&spritesheet_as_sprite);
 
-        for ts in tilemap.get_vertices() {
-            renderer.submit(&ts);
-        }
+        renderer.submit(&tilemap);
 
         renderer.end_batch();
         renderer.render(&camera);
