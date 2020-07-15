@@ -1,6 +1,7 @@
-pub mod layers;
 mod batch_shaders;
 mod render_target;
+pub mod layers;
+pub mod renderable;
 
 use std::collections::HashMap;
 
@@ -11,6 +12,7 @@ use crate::camera::*;
 use crate::sprite::{Sprite};
 use render_target::{RenderTarget};
 use batch_shaders::{create_fragment_source, create_vertex_source};
+use renderable::{Renderable2D, RenderVertex};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -155,12 +157,12 @@ impl Renderer2D {
         self.vbo.unbind();
     }
 
-    pub fn submit(&mut self, sprite: &Sprite) {
+    pub fn submit(&mut self, sprite: &Renderable2D) {
         if self.sprite_count >= self.max_sprites {
             // need to reset/end/flush/render/begin new batch and reset sprite_count
         }
 
-        let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
+        let sprite_texture_handle = sprite.texture() as i32;
         let tex_id: i32 = match self.texture_slots.binary_search(&sprite_texture_handle) {
             Ok(tid) => tid as i32,
             Err(next_id) if self.texture_slots.len() >= self.max_textures as usize => {
@@ -178,20 +180,20 @@ impl Renderer2D {
         };
 
 
-        let sprite_vertices = sprite.get_vertices();
-        let sprite_texture_handle = sprite.texture.get_texture_handle() as i32;
+        let sprite_vertices = sprite.vertices();
+        let sprite_texture_handle = sprite.texture() as i32;
         let sprite_tex_id = self.texture_slots.iter().position(|&id| id == sprite_texture_handle).unwrap_or(0); // should use a single reserved slot for blank white texture or a debug texture
 
         let mut batch_vertices: Vec<BatchVertex> = Vec::new();
         for vertex in sprite_vertices {
             batch_vertices.push(
                 BatchVertex {
-                    pos: vertex.get_pos(),
-                    tex: vertex.get_tex(),
-                    color: vertex.get_color(),
+                    pos: vertex.position(),
+                    tex: vertex.uv(),
+                    color: vertex.color(),
                     tex_id: (sprite_tex_id as u32).into(),
-                    tex_translate: vertex.get_texture_translate(),
-                    tex_scale: vertex.get_texture_scale(),
+                    tex_translate: vertex.texture_translate(),
+                    tex_scale: vertex.texture_scale(),
                 }
             );
         };

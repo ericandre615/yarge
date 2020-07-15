@@ -16,6 +16,7 @@ before diving deeper into using other games engines (although I have done some b
 - Basic Sprite animations through Texture atlas/sprite sheets
 - Basic Tilemap support loading from json
 - Batch Rendering multiple sprites with one draw call (or currently one per about 1000 sprites)
+  on anything that implements `Renderable2D` trait
 - FrameBuffer for off screen rendering and full screen post-processing effects (currently implemented as RenderTarget in batch renderer)
 - Load fonts and render text through `rusttype` with gpu cache
 
