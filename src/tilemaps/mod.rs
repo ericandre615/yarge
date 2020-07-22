@@ -2,7 +2,6 @@ use serde::{Serialize, Deserialize};
 use serde_json;
 
 use std::collections::HashMap;
-use std::path::Path;
 
 use crate::resources::*;
 use crate::textures::texture::*;
@@ -79,7 +78,7 @@ impl Renderable2D for Tilemap {
         self.tileset.get_texture().texture_handle
     }
 
-    fn vertices(&self) -> Vec<Box<RenderVertex>> {
+    fn vertices(&self) -> Vec<Box<dyn RenderVertex>> {
         let mut v = Vec::new();
         for ts in &self.vertices {
             let sv = ts.vertices();

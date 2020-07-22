@@ -25,16 +25,14 @@ impl FontTexture {
         }
     }
 
-    pub fn get_texture_handle(&self) -> gl::types::GLuint {
-        self.texture_handle
-    }
+    //pub fn get_texture_handle(&self) -> gl::types::GLuint {
+    //    self.texture_handle
+    //}
 
     pub fn update(&self, glyph: &GlyphTexture) {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
 
-            // TODO: where to set this? Does it need to be unset?
-            // is it going to effect sprite textures/etc elsewhere?
             gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
             gl::TexSubImage2D(
                 gl::TEXTURE_2D,// GLenum target,
@@ -45,18 +43,18 @@ impl FontTexture {
                 glyph.height as i32,// GLsizei height,
                 gl::RED,// GLenum format, // gl::ALPHA may also work depending on shader
                 gl::UNSIGNED_BYTE,//?// GLenum type,
-                glyph.data.as_ptr() as *const gl::types::GLvoid,// const GLvoid * datav
+                glyph.data.as_ptr() as *const gl::types::GLvoid,
             );
 
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
 
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
-        }
-    }
+    //pub fn bind(&self) {
+    //    unsafe {
+    //        gl::BindTexture(gl::TEXTURE_2D, self.texture_handle);
+    //    }
+    //}
 
     pub fn bind_to_unit(&self, slot: u32) {
         unsafe {

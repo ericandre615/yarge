@@ -1,4 +1,4 @@
-use rusttype::{point, vector, Font, PositionedGlyph, Rect, Scale};
+use rusttype::{Scale};
 
 pub struct FontSize {
     pub scale: Scale

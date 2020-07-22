@@ -78,7 +78,7 @@ impl Layers {
         self.layers.clear();
     }
 
-    fn sort(&mut self) {
+    pub fn sort(&mut self) {
         self.layers.sort();
     }
 }

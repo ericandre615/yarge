@@ -1,5 +1,3 @@
-#[macro_use] extern crate failure;
-
 extern crate sdl2;
 extern crate gl;
 extern crate nalgebra_glm as glm;
@@ -44,11 +42,11 @@ fn run() -> Result<(), failure::Error> {
     let mut viewport = Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
-    let mut renderer = renderer::Renderer2D::new(&res)?;
+    let mut renderer = renderer::Renderer2D::new()?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    let mut font_renderer = FontRenderer::new(&res, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
     font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
 

@@ -1,5 +1,3 @@
-#[macro_use] extern crate failure;
-
 extern crate sdl2;
 extern crate gl;
 extern crate nalgebra_glm as glm;
@@ -7,7 +5,6 @@ extern crate nalgebra_glm as glm;
 use std::path::Path;
 
 use yarge::helpers::*;
-use yarge::helpers::{data};
 use yarge::helpers::timer::{Timer};
 use yarge::resources::Resources;
 use yarge::camera::*;
@@ -19,8 +16,6 @@ use yarge::{font, image, debug};
 use yarge::font::FontRenderer;
 use yarge::{Triangle};
 use yarge::{Rectangle, RectangleProps};
-
-use rusttype::{point};
 
 const WIDTH: u32 = 1024;//720;
 const HEIGHT: u32 = 780;//480;
@@ -54,22 +49,20 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
     let mut texture_manager = textures::TextureManager::new(&res);
-    let mut renderer = renderer::Renderer2D::new(&res)?;
+    let mut renderer = renderer::Renderer2D::new()?;
 
     let mario_texture = textures::texture::Texture::new(&res, "images/mario-sprite.png".to_string())?;
     let test_texture = textures::texture::Texture::new(&res, "images/test.png".to_string())?;
     let spritesheet_texture = textures::texture::Texture::new(&res, "images/ninja-gaiden-spritesheet.png".to_string())?;
-    texture_manager.create("ninja", "images/ninja-gaiden.gif");
-    //texture_manager.create("test", "images/test.png");
-    texture_manager.create("test_b", "images/test_b.png");
+    texture_manager.create("ninja", "images/ninja-gaiden.gif")?;
+    texture_manager.create("test_b", "images/test_b.png")?;
     texture_manager.add("mario", mario_texture);
     texture_manager.add("test", test_texture);
     texture_manager.add("ninja_spritesheet", spritesheet_texture);
-    //let ninja_texture = texture_manager.get(ninja_t);
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    let mut font_renderer = FontRenderer::new(&res, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
     font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
     // TODO: remove set_ppe_program to get normal, this is a basic post-process example effect with
@@ -83,20 +76,20 @@ fn run() -> Result<(), failure::Error> {
     //lighting_program.set_uniform_1f(uniform_intensity, 0.45);
     //lighting_program.set_uniform_2f(uniform_lightpos, &glm::vec2(0.1, 0.1));
 
-    let triangle = Triangle::new(&res)?;
-    let rect1 = Rectangle::new(&res, &RectangleProps {
+    let triangle = Triangle::new()?;
+    let rect1 = Rectangle::new(&RectangleProps {
         width: 256.0,
         height: 256.0,
         pos: (20.0, 20.0),
         color: (1.0, 0.0, 0.0, 1.0),
     })?;
-    let rect2 = Rectangle::new(&res, &RectangleProps {
+    let rect2 = Rectangle::new(&RectangleProps {
         width: 256.0,
         height: 256.0,
         pos: (40.0, 40.0),
         color: (0.0, 1.0, 0.0, 0.8),
     })?;
-    let rect3 = Rectangle::new(&res, &RectangleProps {
+    let rect3 = Rectangle::new(&RectangleProps {
         width: 210.0,
         height: 210.0,
         pos: (180.0, 80.0),
@@ -152,7 +145,7 @@ fn run() -> Result<(), failure::Error> {
         }
     )?;
 
-    let mut some_sprite = Sprite::from_texture(
+    let some_sprite = Sprite::from_texture(
         texture_manager.get("test"),
         SpriteProps {
             pos: (100.0, 20.0, 0.0),
@@ -162,7 +155,7 @@ fn run() -> Result<(), failure::Error> {
         },
     )?;
 
-    let mut some_other_sprite = Sprite::from_texture(
+    let some_other_sprite = Sprite::from_texture(
         texture_manager.get("test_b"),
         SpriteProps {
             pos: (20.0, 280.0, 0.0),
@@ -202,8 +195,6 @@ fn run() -> Result<(), failure::Error> {
 
     let mut i = 0;
 
-    let mut is_look_at: bool = true;
-
     let mut vbs = Vec::new();
     let start_pos = (300.0, 300.0);
     for i in 0..4 {
@@ -216,7 +207,7 @@ fn run() -> Result<(), failure::Error> {
             3 => 1.0,
             _ => (90.0 - (i as f32 * 2.0)) / 255.0,
         };
-        let mut batch_sprite = Sprite::from_texture(
+        let batch_sprite = Sprite::from_texture(
             texture_manager.get("ninja"),
             SpriteProps {
                 pos: pos,
@@ -240,7 +231,7 @@ fn run() -> Result<(), failure::Error> {
     mario_as_sprite.set_texture_scale((scale_ix, scale_iy));
     //mario_as_sprite.set_frame((0.0, 210.0));
 
-    let mut ninja_as_sprite = Sprite::from_texture(
+    let ninja_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja"),
         SpriteProps {
             pos: (400.0, 40., 0.0),
@@ -292,10 +283,6 @@ fn run() -> Result<(), failure::Error> {
                 sdl2::event::Event::KeyDown { keycode, .. } => {
                     let dt = timer.delta_time();
                     match keycode {
-                        Some(sdl2::keyboard::Keycode::L) => {
-//                            camera.cancel_look_at();
-                            is_look_at = false;
-                        },
                         Some(sdl2::keyboard::Keycode::Right) => {
                             let (x, _y) = image3.get_position();
                             image3.set_orientation(image::Direction::Normal, image::Direction::Normal);
@@ -338,8 +325,6 @@ fn run() -> Result<(), failure::Error> {
         //let (tx, ty) = image3.get_position();
         //camera.set_position(tx, ty, 0.0);
         // render window contents here
-        // TODO: can not get look_at to work????
-        let (ipx, ipy) = image3.get_position();
         //camera.look_at((ipx, ipy, 0.0));
         viewport.set_used();
 
@@ -357,10 +342,10 @@ fn run() -> Result<(), failure::Error> {
         rect1.render(&camera);
         rect2.render(&camera);
         rect3.render(&camera);
-        image.render(&camera, delta_time);
-        image2.render(&camera, delta_time);
-        spritesheet.render(&camera, delta_time);
-        image3.render(&camera, delta_time);
+        image.render(&camera);
+        image2.render(&camera);
+        spritesheet.render(&camera);
+        image3.render(&camera);
 
         spritesheet.set_frame(sprite_frames[i]);
 

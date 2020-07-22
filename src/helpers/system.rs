@@ -1,5 +1,4 @@
 pub struct SystemInfo {
-    max_texture: gl::types::GLint,
 }
 
 impl SystemInfo {

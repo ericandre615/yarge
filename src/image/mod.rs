@@ -1,8 +1,5 @@
 mod image_shaders;
 
-use image::{ImageResult, DynamicImage, GenericImageView};
-use std::ffi::{CString, c_void};
-
 use crate::helpers::{self, data, buffer};
 use crate::resources::*;
 use crate::textures::texture::{Texture};
@@ -53,10 +50,10 @@ pub struct Orientation {
 
 pub struct Image {
     program: helpers::Program,
-    vbo: buffer::ArrayBuffer,
+    _vbo: buffer::ArrayBuffer,
     vao: buffer::VertexArray,
     ibo: buffer::ElementArrayBuffer,
-    attrib_texcoord_location: i32,
+    _attrib_texcoord_location: i32,
     uniform_mvp: i32,
     uniform_color: i32,
     uniform_texcoord_transform: i32,
@@ -132,11 +129,11 @@ impl Image {
 
         Ok(Image {
             program,
-            vbo,
+            _vbo: vbo,
             vao,
             ibo,
             image,
-            attrib_texcoord_location,
+            _attrib_texcoord_location: attrib_texcoord_location,
             uniform_mvp,
             uniform_color,
             uniform_texcoord_transform,
@@ -227,7 +224,7 @@ impl Image {
         self.image.texture_slot = slot;
     }
 
-    pub fn render(&self, camera: &Camera, dt: f32) {
+    pub fn render(&self, camera: &Camera) {
         let scale_x = match self.orientation.horizontal {
             Direction::Normal => 1.0,
             Direction::Flipped => -1.0,

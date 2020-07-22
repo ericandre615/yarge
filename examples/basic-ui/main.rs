@@ -1,21 +1,15 @@
-#[macro_use] extern crate failure;
-
 extern crate sdl2;
 extern crate gl;
 
 use std::path::Path;
 
 use yarge::helpers::*;
-use yarge::helpers::{data};
-use yarge::helpers::timer::{Timer};
 use yarge::resources::Resources;
 use yarge::camera::*;
 use yarge::renderer;
 use yarge::{font, debug};
 use yarge::font::FontRenderer;
 use yarge::{Rectangle, RectangleProps};
-
-use rusttype::{point};
 
 const WIDTH: u32 = 1024;
 const HEIGHT: u32 = 780;
@@ -48,11 +42,11 @@ fn run() -> Result<(), failure::Error> {
     let mut viewport = Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
-    let mut renderer = renderer::Renderer2D::new(&res)?;
+    let mut renderer = renderer::Renderer2D::new()?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    let mut font_renderer = FontRenderer::new(&res, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
     font_renderer.add_font("cjk".to_string(), "fonts/wqy-microhei/WenQuanYiMicroHei.ttf");
 
@@ -72,14 +66,14 @@ fn run() -> Result<(), failure::Error> {
         }
     );
 
-    let mut left_sidebar = Rectangle::new(&res, &RectangleProps {
+    let left_sidebar = Rectangle::new(&RectangleProps {
         width: 280.0,
         height: 400.0,
         pos: (20.0, 100.0),
         color: (0.75, 0.85, 0.45, 0.70),
     })?;
 
-    let left_sidebar_sub = Rectangle::new(&res, &RectangleProps {
+    let left_sidebar_sub = Rectangle::new(&RectangleProps {
         width: 280.0,
         height: 200.0,
         pos: (20.0, 520.0),
@@ -125,13 +119,13 @@ fn run() -> Result<(), failure::Error> {
         // Rectangle should be able to have properties updated at any point, easily
         // Also, renderer for batching can still only support Sprite, but should
         // be able to support Rect or any other Renderable item
-        let top_bar = Rectangle::new(&res, &RectangleProps {
+        let top_bar = Rectangle::new(&RectangleProps {
             width: viewport.w,
             height: 60.0,
             pos: (0.0, 0.0),
             color: (0.65, 0.65, 0.65, 1.0),
         })?;
-        let mut main_content = Rectangle::new(&res, &RectangleProps {
+        let main_content = Rectangle::new(&RectangleProps {
             width: viewport.w - 340.0,
             height: 600.0,
             pos: (320.0, 100.0),

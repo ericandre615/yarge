@@ -137,10 +137,10 @@ impl Renderable2D for Sprite {
         self.texture.texture_handle
     }
 
-    fn vertices(&self) -> Vec<Box<RenderVertex>> {
+    fn vertices(&self) -> Vec<Box<dyn RenderVertex>> {
         let mut v = Vec::new();
         for sv in &self.vertices {
-            v.push(Box::new(*sv) as Box<RenderVertex>);
+            v.push(Box::new(*sv) as Box<dyn RenderVertex>);
         }
 
         v

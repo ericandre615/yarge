@@ -1,4 +1,4 @@
-use image::{ImageResult, DynamicImage, ImageError};
+use image::{ImageResult, DynamicImage};
 use serde_json;
 
 use rusttype::{Font, FontCollection};

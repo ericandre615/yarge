@@ -1,12 +1,9 @@
-use crate::textures::transform;
-
-use image::{ImageResult, DynamicImage, GenericImageView};
+use image::{DynamicImage, GenericImageView};
 
 use std::fmt;
 
 use crate::resources::*;
 
-// TODO: dont really want to let cloning/copying, temporary for WIP
 #[derive(Clone)]
 pub struct Texture {
     pub texture_handle: gl::types::GLuint,
@@ -16,7 +13,6 @@ pub struct Texture {
 
 impl fmt::Debug for Texture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //write!(f, "Texture Debug not implemented")
         f.debug_struct("Texture")
             .field("texture_handle", &self.texture_handle)
             .field("image_path", &self.image_path)
@@ -89,11 +85,6 @@ fn create_texture(width: u32, height: u32, image_raw: &Vec<u8>) -> gl::types::GL
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-
-        // TODO: debug
-        //let colour = vec![0.0, 0.0, 1.0, 1.0];
-        //gl::TexParameterfv(gl::TEXTURE_2D, gl::TEXTURE_BORDER_COLOR, colour.as_ptr() as *const f32);
-
         gl::TexImage2D(
             gl::TEXTURE_2D,
             0,
