@@ -140,19 +140,19 @@ fn parse_obj_source(source: &str) -> MeshObj {
 
     for line in source.lines() {
         match line {
-            l if line.starts_with("v ") => {
+            _l if line.starts_with("v ") => {
                 let v = collect_on_space(&sanitize_line("v ", line));
                 positions.push((v[0], v[1], v[2]));
             },
-            l if line.starts_with("vt ") => {
+            _l if line.starts_with("vt ") => {
                 let v = collect_on_space(&sanitize_line("vt ", line));
                 uvs.push((v[0], v[1]));
             },
-            l if line.starts_with("vn ") => {
+            _l if line.starts_with("vn ") => {
                 let v = collect_on_space(&sanitize_line("vn ", line));
                 normals.push((v[0], v[1], v[2]));
             },
-            l if line.starts_with("s ") => {
+            _l if line.starts_with("s ") => {
                 let v = sanitize_line("s ", line);
                 if v.trim() == "off" {
                     smoothing = false;
@@ -160,19 +160,19 @@ fn parse_obj_source(source: &str) -> MeshObj {
                     smoothing = true;
                 }
             }
-            l if line.starts_with("g ") => {
+            _l if line.starts_with("g ") => {
                 let v = sanitize_line("g ", line);
                 group = v;
             },
-            l if line.starts_with("mtllib ") => {
+            _l if line.starts_with("mtllib ") => {
                 let v = sanitize_line("mtllib ", line);
                 mat_file = v;
             }
-            l if line.starts_with("usemtl ") => {
+            _l if line.starts_with("usemtl ") => {
                 let v = sanitize_line("usemtl ", line);
                 mat_ids.push(v);
             },
-            l if line.starts_with("f ") => {
+            _l if line.starts_with("f ") => {
                 //let v = collect_str_on_space(&sanitize_line("f ", line));
                 let v = collect_on_multispace::<String>(&sanitize_line("f ", line));
                 let mut f = Vec::new();
