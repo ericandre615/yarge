@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 #[macro_use] extern crate failure;
 #[macro_use] extern crate gl_vertex_derive;
 

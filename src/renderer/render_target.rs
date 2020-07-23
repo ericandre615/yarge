@@ -1,7 +1,5 @@
 use crate::helpers::buffer::{FrameBuffer, ArrayBuffer, VertexArray};
-use crate::resources::{Resources};
 use crate::helpers::{self, data};
-use crate::camera::{Camera};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]

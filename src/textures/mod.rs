@@ -1,7 +1,6 @@
 pub mod texture;
 pub mod transform;
 
-use std::path::Path;
 use std::collections::HashMap;
 
 use texture::{Texture};
@@ -45,9 +44,7 @@ impl<'a> TextureManager<'a> {
     }
 
     pub fn get(&self, key: &str) -> &Texture {
-        let texture = self.textures.get(key).unwrap();
-
-        texture
+        self.textures.get(key).unwrap()
     }
 
     //pub fn collection(self) -> &'a HashMap<String, Texture> {
@@ -55,28 +52,28 @@ impl<'a> TextureManager<'a> {
     //}
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-   // #[test]
-   // fn can_add_texture() {
-   //     use image::{DynamicImage, ImageBuffer, RgbaImage};
-   //     let test_resources = Resources::from_relative_path(Path::new("assets")).unwrap();
-   //     let mut texture_manager = TextureManager::new(&test_resources);
-   //     let empty_rgba: RgbaImage = ImageBuffer::new(10, 10);
-   //     let empty_image_data = DynamicImage::ImageRgba8(empty_rgba);
-   //     let added_key = texture_manager.add(
-   //         "test",
-   //         Texture {
-   //             texture_handle: 1,
-   //             texture_offset: 0,
-   //             image_data: empty_image_data,
-   //             image_path: "images/test.png".to_string(),
-   //         }
-   //     );
-
-   //     assert_eq!("test", added_key);
-   //     assert_eq!(HashMap::new(), texture_manager.textures);
-   // }
-}
+//#[cfg(test)]
+//mod test {
+//    use super::*;
+//
+//    #[test]
+//    fn can_add_texture() {
+//       use image::{DynamicImage, ImageBuffer, RgbaImage};
+//       let test_resources = Resources::from_relative_path(Path::new("assets")).unwrap();
+//       let mut texture_manager = TextureManager::new(&test_resources);
+//       let empty_rgba: RgbaImage = ImageBuffer::new(10, 10);
+//       let empty_image_data = DynamicImage::ImageRgba8(empty_rgba);
+//       let added_key = texture_manager.add(
+//           "test",
+//           Texture {
+//               texture_handle: 1,
+//               texture_offset: 0,
+//               image_data: empty_image_data,
+//               image_path: "images/test.png".to_string(),
+//           }
+//       );
+//
+//       assert_eq!("test", added_key);
+//       assert_eq!(HashMap::new(), texture_manager.textures);
+//   }
+//}

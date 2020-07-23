@@ -5,14 +5,12 @@ pub mod renderable;
 
 use std::collections::HashMap;
 
-use crate::resources::*;
 use layers::*;
 use crate::helpers::{self, data, buffer, system};
 use crate::camera::*;
-use crate::sprite::{Sprite};
 use render_target::{RenderTarget};
 use batch_shaders::{create_fragment_source, create_vertex_source};
-use renderable::{Renderable2D, RenderVertex};
+use renderable::{Renderable2D};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -36,7 +34,7 @@ pub struct Renderer2D {
     program: helpers::Program,
     vertices: Vec<Vec<BatchVertex>>,
     indices: Vec<[i32; 6]>,
-    layers: Layers,
+    _layers: Layers,
     vbo: buffer::DynamicArrayBuffer,
     vao: buffer::VertexArray,
     ibo: buffer::ElementArrayBuffer,
@@ -50,11 +48,11 @@ pub struct Renderer2D {
 }
 
 impl Renderer2D {
-    pub fn new(res: &Resources) -> Result<Renderer2D, failure::Error> {
+    pub fn new() -> Result<Renderer2D, failure::Error> {
         let default_clear_color = (1.0, 1.0, 1.0, 1.0);
         let max_buffer_size = ((::std::mem::size_of::<BatchVertex>()) * 4000) as gl::types::GLsizeiptr;
         let max_sprites = 1000;
-        let max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
+        let _max_index_size = ((::std::mem::size_of::<[u32; 6]>()) * 4000) as gl::types::GLsizeiptr;
         let max_textures = system::SystemInfo::get_max_textures();
         let vert_src = create_vertex_source();
         let frag_src = create_fragment_source(max_textures);
@@ -94,7 +92,7 @@ impl Renderer2D {
             program,
             vertices: Vec::new(),
             indices,
-            layers: Layers::new(),
+            _layers: Layers::new(),
             vbo,
             vao,
             ibo,
@@ -157,15 +155,15 @@ impl Renderer2D {
         self.vbo.unbind();
     }
 
-    pub fn submit(&mut self, sprite: &Renderable2D) {
+    pub fn submit(&mut self, sprite: &dyn Renderable2D) {
         if self.sprite_count >= self.max_sprites {
             // need to reset/end/flush/render/begin new batch and reset sprite_count
         }
 
         let sprite_texture_handle = sprite.texture() as i32;
-        let tex_id: i32 = match self.texture_slots.binary_search(&sprite_texture_handle) {
+        let _tex_id: i32 = match self.texture_slots.binary_search(&sprite_texture_handle) {
             Ok(tid) => tid as i32,
-            Err(next_id) if self.texture_slots.len() >= self.max_textures as usize => {
+            Err(_next_id) if self.texture_slots.len() >= self.max_textures as usize => {
                 // we dont have this texture, but we have no space
                 // we need to flush/end/render, and start again
 
@@ -202,7 +200,7 @@ impl Renderer2D {
         self.vbo.set_buffer_offset(self.vbo.buffer_offset + ((::std::mem::size_of::<BatchVertex>()) * 4) as isize);
 
         self.vertices.push(batch_vertices);
-        self.sprite_count = self.sprite_count + 1;
+        self.sprite_count += 1;
 
         // TODO: experimental
         //self.indices = generate_batch_indices(self.sprite_count);
@@ -302,9 +300,9 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     // TODO: maybe take in a format or base it off given vertices?
     // as this needs to match the order of a sprites vertices
     // this order is more of a top left to bottom right
-    for i in (0..vertices_len) {
+    for _i in 0..vertices_len {
         let group: [i32; 6] = [
-            offset + 0,
+            offset,
             offset + 1,
             offset + 2,
             offset + 2,

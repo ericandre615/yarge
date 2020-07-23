@@ -4,8 +4,7 @@ mod font_shaders;
 mod layout;
 
 use rusttype::gpu_cache::Cache;
-use rusttype::{point, vector, Font, PositionedGlyph, Rect, Scale};
-use std::borrow::Cow;
+use rusttype::{point, vector, Font, Rect, Scale};
 use std::fmt;
 use std::collections::HashMap;
 
@@ -17,8 +16,6 @@ use font_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 use layout::{basic_layout};
 use font_texture::{FontTexture, GlyphTexture};
 pub use text::{Text, TextSettings};
-
-use crate::rectangle::{Rectangle, RectangleProps};
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -47,7 +44,6 @@ pub struct FontRenderer<'a> {
     vertices: Vec<GlyphVertices>,
     indices: Vec<[i32; 6]>,
     uniforms: HashMap<String, i32>,
-    test_rects: Vec<Rectangle>,
 }
 
 impl fmt::Debug for FontRenderer<'_> {
@@ -62,15 +58,14 @@ impl fmt::Debug for FontRenderer<'_> {
 }
 
 impl<'a> FontRenderer<'a> {
-    pub fn new(res: &'a Resources, screen_width: u32, screen_height: u32, display_dpi: f32) -> Result<FontRenderer, failure::Error> {
+    pub fn new(res: &'a Resources, display_dpi: f32) -> Result<FontRenderer, failure::Error> {
         let scale_factor = display_dpi;
         // TODO: research Signed Distance Field
         let (cache_width, cache_height) = (
-            (512.0 * scale_factor) as u32,//(screen_width * scale_factor) as u32, // 512 needs to be screen width
-            (512.0 * scale_factor) as u32,//(screen_height * scale_factor) as u32 // screen height
-            // with_inner_size(glium::glutin::dpi::PhysicalSize::new(512, 512))
+            (512.0 * scale_factor) as u32,
+            (512.0 * scale_factor) as u32,
         );
-        let mut cache = Cache::builder()
+        let cache = Cache::builder()
             .dimensions(cache_width, cache_height)
             .build();
         let shaders = vec![
@@ -120,7 +115,6 @@ impl<'a> FontRenderer<'a> {
                 ("texture".to_owned(), uniform_texture),
                 ("mvp".to_owned(), uniform_mvp),
             ].into_iter().collect(),
-            test_rects: Vec::new(),
         })
     }
 
@@ -130,7 +124,7 @@ impl<'a> FontRenderer<'a> {
         self.fonts.insert(font_name, font);
     }
 
-    pub fn get_font(&self, font_name: &String) -> &Font {
+    pub fn get_font(&self, font_name: &str) -> &Font {
         self.fonts.get(font_name).as_ref().unwrap()
     }
 
@@ -150,10 +144,8 @@ impl<'a> FontRenderer<'a> {
     }
 
     pub fn render(&mut self, text: &Text, camera: &Camera) {
-        let (screen_width, screen_height) = camera.get_dimensions();
-        let mvp = camera.get_projection() * camera.get_view();
         let font = self.fonts.get(&text.settings.font)
-            .expect(&format!("No Font {:#?} Found", text.settings.font));
+            .unwrap_or_else(|| panic!("No Font {:#?} Found", text.settings.font));
         let text_color = (
             text.settings.color.0 as f32 / 255.0,
             text.settings.color.1 as f32 / 255.0,
@@ -171,7 +163,6 @@ impl<'a> FontRenderer<'a> {
             &text.text
         );
 
-        let mut should_print = true;
         for glyph in &glyphs {
             self.cache.queue_glyph(0/* font_id */, glyph.clone());
         }
@@ -205,37 +196,27 @@ impl<'a> FontRenderer<'a> {
                         screen_rect.max.y as f32 + text_offset_y as f32
                     ),
                 };
-                let (w, h) = (
-                    gl_rect.max.x - gl_rect.min.x,
-                    gl_rect.max.y - gl_rect.min.y,
-                );
-                let glyph_rect = Rectangle::new(&self.res, &RectangleProps {
-                    width: w as f32,//rect.max.x as f32,
-                    height: h as f32,//rect.max.y as f32,
-                    pos: (gl_rect.min.x as f32, gl_rect.min.y as f32),
-                    color: (0.20, 0.0, 0.5, 1.0),//text_color,
-                }).unwrap();
 
-                // 0 top left
-                // 1 top right
-                // 2 bottom left
-                // 3 bottom right
                 vec![
+                    // top left
                     GlyphVertex {
                         pos: (gl_rect.min.x, gl_rect.min.y, 0.0).into(),
                         tex: (uv_rect.min.x, uv_rect.min.y).into(),
                         color: text_color.into(),
                     },
+                    // top right
                     GlyphVertex {
                         pos: (gl_rect.max.x, gl_rect.min.y, 0.0).into(),
                         tex: (uv_rect.max.x, uv_rect.min.y).into(),
                         color: text_color.into(),
                     },
+                    // bottom left
                     GlyphVertex {
                         pos: (gl_rect.min.x, gl_rect.max.y, 0.0).into(),
                         tex: (uv_rect.min.x, uv_rect.max.y).into(),
                         color: text_color.into(),
                     },
+                    // bottom right
                     GlyphVertex {
                         pos: (gl_rect.max.x, gl_rect.max.y, 0.0).into(),
                         tex: (uv_rect.max.x, uv_rect.max.y).into(),
@@ -305,9 +286,9 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     // TODO: maybe take in a format or base it off given vertices?
     // as this needs to match the order of a sprites vertices
     // this order is more of a top left to bottom right
-    for i in (0..vertices_len) {
+    for _i in 0..vertices_len {
         let group: [i32; 6] = [
-            offset + 0,
+            offset,
             offset + 1,
             offset + 2,
             offset + 2,
@@ -321,9 +302,5 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     }
 
     indices
-}
-
-fn convert_points_to_pixels(size: f32) -> u32 {
-    ((size as f32) * 1.333).round() as u32
 }
 

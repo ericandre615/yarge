@@ -1,10 +1,7 @@
 mod rect_shaders;
 
 use crate::helpers::{self, data, buffer};
-use crate::resources::*;
-
 use crate::camera::{Camera};
-
 use rect_shaders::{VERTEX_SOURCE, FRAGMENT_SOURCE};
 
 #[derive(VertexAttribPointers)]
@@ -48,7 +45,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(res: &Resources, props: &RectangleProps) -> Result<Rectangle, failure::Error> {
+    pub fn new(props: &RectangleProps) -> Result<Rectangle, failure::Error> {
         let shaders = vec![
             helpers::Shader::from_raw(&VERTEX_SOURCE, gl::VERTEX_SHADER)?,
             helpers::Shader::from_raw(&FRAGMENT_SOURCE, gl::FRAGMENT_SHADER)?,
@@ -67,7 +64,6 @@ impl Rectangle {
         let x2 = x + (width as f32);
         let y2 = y + (height as f32);
         let vertices: Vec<Vertex> = vec![
-            // positions        // colors
            Vertex { pos: (x, y, 0.0).into() }, // bottom right
            Vertex { pos: (x2, y, 0.0).into() }, // bottom left
            Vertex { pos: (x, y2, 0.0).into() }, // top
@@ -82,12 +78,10 @@ impl Rectangle {
 
         vbo.bind();
         vbo.static_draw_data(&vertices);
-        //vbo.unbind();
 
         let vao = buffer::VertexArray::new();
 
         vao.bind();
-        //vbo.bind();
 
         Vertex::vertex_attrib_pointers();
 
@@ -112,7 +106,6 @@ impl Rectangle {
                 height,
                 pos,
                 color,
-                ..Default::default()
             },
         })
     }
@@ -132,7 +125,6 @@ impl Rectangle {
     }
 
     pub fn render(&self, camera: &Camera) {
-        //let model = glm::rotate(&self.model, 0.14, &glm::vec3(0.0, 1.0, 0.0));
         let model = self.model;
         let mvp = camera.get_projection() * camera.get_view() * model;
 
