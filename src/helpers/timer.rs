@@ -7,6 +7,12 @@ pub struct Timer {
     delta_time: f32
 }
 
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Timer {
     pub fn new() -> Timer {
         Timer {

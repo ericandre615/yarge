@@ -109,7 +109,7 @@ fn create_font_texture(cache_width: u32, cache_height: u32) -> gl::types::GLuint
 impl Drop for FontTexture {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTextures(1, &mut self.texture_handle);
+            gl::DeleteTextures(1, &self.texture_handle);
         }
     }
 }

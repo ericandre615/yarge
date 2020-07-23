@@ -126,7 +126,7 @@ impl Program {
 
         if location == -1 {
             return Err(Error::UniformLocationNotFound {
-                program_id: self.id.clone(),
+                program_id: self.id,
                 program_name: self.name.clone(),
                 uniform_name: name.into(),
             });
@@ -143,7 +143,7 @@ impl Program {
 
         if location == -1 {
             return Err(Error::AttribLocationNotFound {
-                program_id: self.id.clone(),
+                program_id: self.id,
                 program_name: self.name.clone(),
                 attrib_name: name.into(),
             });
@@ -164,7 +164,7 @@ impl Program {
         }
     }
 
-    pub fn set_uniform_1iv(&self, location: i32, value: &Vec<i32>) {
+    pub fn set_uniform_1iv(&self, location: i32, value: &[i32]) {
         unsafe {
             gl::Uniform1iv(
                 location,
@@ -174,7 +174,7 @@ impl Program {
         }
     }
 
-    pub fn set_uniform_1fv(&self, location: i32, value: &Vec<f32>) {
+    pub fn set_uniform_1fv(&self, location: i32, value: &[f32]) {
         unsafe {
             gl::Uniform1fv(
                 location,
@@ -184,7 +184,7 @@ impl Program {
         }
     }
 
-    pub fn set_uniform_1uiv(&self, location: i32, value: &Vec<u32>) {
+    pub fn set_uniform_1uiv(&self, location: i32, value: &[u32]) {
         unsafe {
             gl::Uniform1uiv(
                 location,

@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use serde_json;
 
 use std::collections::HashMap;
 
@@ -141,31 +140,28 @@ fn generate_vertices_from_layer(layer: &TileLayer, tileset: &Tileset) -> Vec<Spr
     let mut row = 0;
 
     for tile_id in layer.data.iter() {
-        let tile = tileset.tiles.get(&String::from(tile_id.to_string()));
+        let tile = tileset.tiles.get(&tile_id.to_string());
         // maybe this is the position on the map/layer/world?
         let tx = (tileset.tile_width * col) as f32;
         let ty = (tileset.tile_height * row) as f32;
 
-        match tile {
-            Some(t) => {
-                let mut sprite_tile = Sprite::from_texture(
-                    tileset.get_texture(),
-                    SpriteProps {
-                        pos: (tx, ty, 0.0),
-                        dim: (tileset.tile_width, tileset.tile_height),
-                        ..Default::default()
-                    }
-                ).unwrap();
-                let (tx, ty) = t.pos;
-                sprite_tile.set_frame((tx as f32, ty as f32));
-                vertices.push(sprite_tile);
-            },
-            None => (),
-        }
+        if let Some(t) = tile {
+            let mut sprite_tile = Sprite::from_texture(
+                tileset.get_texture(),
+                SpriteProps {
+                    pos: (tx, ty, 0.0),
+                    dim: (tileset.tile_width, tileset.tile_height),
+                    ..Default::default()
+                }
+            ).unwrap();
+            let (tx, ty) = t.pos;
+            sprite_tile.set_frame((tx as f32, ty as f32));
+            vertices.push(sprite_tile);
+        };
 
         if col == cols_len {
             col = 0;
-            row = row + 1;
+            row += 1;
         } else {
             col += 1;
         }

@@ -1,5 +1,4 @@
 use image::{ImageResult, DynamicImage};
-use serde_json;
 
 use rusttype::{Font, FontCollection};
 
@@ -55,7 +54,7 @@ impl Resources {
 
         file.read_to_end(&mut buffer)?;
 
-        if buffer.iter().find(|i| **i == 0).is_some() {
+        if buffer.iter().any(|i| *i == 0) {
             return Err(Error::FileContainsNil);
         }
 
@@ -66,9 +65,8 @@ impl Resources {
 
     pub fn load_image_from_path(&self, path: &str) -> ImageResult<DynamicImage> {
         let file_path = resource_name_to_path(&self.root_path, path);
-        let image = image::open(file_path); // .ok().expect(Error::FailedToLoadImage);
 
-        image
+        image::open(file_path) // .ok().expect(Error::FailedToLoadImage);
     }
 
     pub fn load_from_json(&self, path: &str) -> Result<serde_json::Value, failure::Error> {
@@ -96,7 +94,7 @@ impl Resources {
 fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
     let mut path: PathBuf = root_dir.into();
 
-    for part in location.split("/") {
+    for part in location.split('/') {
         path = path.join(part);
     }
 

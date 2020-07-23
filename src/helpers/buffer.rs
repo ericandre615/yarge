@@ -17,7 +17,7 @@ pub type ElementArrayBuffer = Buffer<BufferTypeElementArray>;
 pub type DynamicArrayBuffer = DynamicBuffer<BufferTypeArray>;
 pub type DynamicElementArrayBuffer = DynamicBuffer<BufferTypeElementArray>;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Buffer<B> where B: BufferType {
     vbo: gl::types::GLuint,
     _marker: ::std::marker::PhantomData<B>,
@@ -64,7 +64,7 @@ impl<B> Buffer<B> where B: BufferType {
 impl<B> Drop for Buffer<B> where B: BufferType {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteBuffers(1, &mut self.vbo);
+            gl::DeleteBuffers(1, &self.vbo);
         }
     }
 }
@@ -142,12 +142,12 @@ impl<B> DynamicBuffer<B> where B: BufferType {
 impl<B> Drop for DynamicBuffer<B> where B: BufferType {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteBuffers(1, &mut self.vbo);
+            gl::DeleteBuffers(1, &self.vbo);
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct VertexArray {
     vao: gl::types::GLuint,
 }
@@ -179,7 +179,7 @@ impl VertexArray {
 impl Drop for VertexArray {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteVertexArrays(1, &mut self.vao);
+            gl::DeleteVertexArrays(1, &self.vao);
         }
     }
 }
@@ -244,7 +244,7 @@ impl FrameBuffer {
 impl Drop for FrameBuffer {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteFramebuffers(1, &mut self.fbo);
+            gl::DeleteFramebuffers(1, &self.fbo);
         }
     }
 }
@@ -341,7 +341,7 @@ fn create_fb_texture(screen_width: u32, screen_height: u32) -> gl::types::GLuint
 impl Drop for FrameBufferTexture {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTextures(1, &mut self.texture_handle);
+            gl::DeleteTextures(1, &self.texture_handle);
         }
     }
 }

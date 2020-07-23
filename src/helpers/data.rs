@@ -8,7 +8,9 @@ pub struct f32_f32_f32 {
 }
 
 // <F28>http://nercury.github.io/rust/opengl/tutorial/2018/07/12/opengl-in-rust-from-scratch-11-vertex-data-types.html<F29>
-
+// TODO: possibly this little data module should be moved to it's own separate lib paired with
+// the gl_vertex_derive macro as these types are only and specifically used with
+// structs that use the Vertex Derive macro
 impl f32_f32_f32 {
     pub fn new(d0: f32, d1: f32, d2: f32) -> f32_f32_f32 {
         f32_f32_f32 {
@@ -16,6 +18,11 @@ impl f32_f32_f32 {
         }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -60,6 +67,11 @@ impl f32_f32_f32_f32 {
         }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -100,6 +112,12 @@ impl From<(f32, f32, f32, f32)> for u2_u10_u10_u10_rev_float {
 }
 
 impl u2_u10_u10_u10_rev_float {
+
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -125,6 +143,11 @@ impl u32_ {
         u32_ { d0 }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribIPointer(
@@ -155,6 +178,11 @@ impl i8_ {
         i8_ { d0 }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribIPointer(
@@ -185,6 +213,11 @@ impl i8_float {
         i8_float { d0 }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -233,6 +266,11 @@ impl TexCoords {
         }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -267,6 +305,12 @@ impl f32_f32 {
         }
     }
 
+
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(
@@ -300,6 +344,11 @@ impl f32_ {
         }
     }
 
+    /// # Safety
+    ///
+    /// Generally should not be called directly
+    /// derived Vertex structs call Vertex::vertex_attrib_pointer()
+    /// which will use these implementations on data types
     pub unsafe fn vertex_attrib_pointer(stride: usize, location: usize, offset: usize) {
         gl::EnableVertexAttribArray(location as gl::types::GLuint);
         gl::VertexAttribPointer(

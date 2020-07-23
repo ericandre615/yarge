@@ -124,7 +124,7 @@ impl<'a> FontRenderer<'a> {
         self.fonts.insert(font_name, font);
     }
 
-    pub fn get_font(&self, font_name: &String) -> &Font {
+    pub fn get_font(&self, font_name: &str) -> &Font {
         self.fonts.get(font_name).as_ref().unwrap()
     }
 
@@ -145,7 +145,7 @@ impl<'a> FontRenderer<'a> {
 
     pub fn render(&mut self, text: &Text, camera: &Camera) {
         let font = self.fonts.get(&text.settings.font)
-            .expect(&format!("No Font {:#?} Found", text.settings.font));
+            .unwrap_or_else(|| panic!("No Font {:#?} Found", text.settings.font));
         let text_color = (
             text.settings.color.0 as f32 / 255.0,
             text.settings.color.1 as f32 / 255.0,
@@ -288,7 +288,7 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     // this order is more of a top left to bottom right
     for _i in 0..vertices_len {
         let group: [i32; 6] = [
-            offset + 0,
+            offset,
             offset + 1,
             offset + 2,
             offset + 2,

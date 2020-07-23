@@ -70,7 +70,7 @@ impl Texture {
     }
 }
 
-fn create_texture(width: u32, height: u32, image_raw: &Vec<u8>) -> gl::types::GLuint {
+fn create_texture(width: u32, height: u32, image_raw: &[u8]) -> gl::types::GLuint {
     let image_ptr = image_raw.as_ptr() as *const gl::types::GLvoid;
     let mut texture_handle: gl::types::GLuint = 1;
 
@@ -108,7 +108,7 @@ fn create_texture(width: u32, height: u32, image_raw: &Vec<u8>) -> gl::types::GL
 impl Drop for Texture {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTextures(1, &mut self.texture_handle);
+            gl::DeleteTextures(1, &self.texture_handle);
         }
     }
 }

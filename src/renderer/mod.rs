@@ -200,7 +200,7 @@ impl Renderer2D {
         self.vbo.set_buffer_offset(self.vbo.buffer_offset + ((::std::mem::size_of::<BatchVertex>()) * 4) as isize);
 
         self.vertices.push(batch_vertices);
-        self.sprite_count = self.sprite_count + 1;
+        self.sprite_count += 1;
 
         // TODO: experimental
         //self.indices = generate_batch_indices(self.sprite_count);
@@ -302,7 +302,7 @@ fn generate_batch_indices(vertices_len: usize) -> Vec<[i32; 6]> {
     // this order is more of a top left to bottom right
     for _i in 0..vertices_len {
         let group: [i32; 6] = [
-            offset + 0,
+            offset,
             offset + 1,
             offset + 2,
             offset + 2,

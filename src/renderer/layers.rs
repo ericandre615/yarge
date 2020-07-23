@@ -11,7 +11,13 @@ pub enum LayerKind {
     Overlay,
 }
 
-#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Debug)]
+impl Default for LayerKind {
+    fn default() -> LayerKind {
+        LayerKind::Generic
+    }
+}
+
+#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Debug, Default)]
 pub struct Layer {
     kind: LayerKind,
     ordinal: i32,
@@ -50,6 +56,7 @@ impl Layer {
     }
 }
 
+#[derive(Default)]
 pub struct Layers {
     layers: Vec<Layer>
 }
@@ -68,9 +75,7 @@ impl Layers {
 
     pub fn remove(& mut self, id: &str) {
         self.layers.retain(|layer| {
-            if layer.id == id { return false; }
-
-            return true;
+            layer.id != id
         });
     }
 

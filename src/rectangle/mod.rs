@@ -106,7 +106,6 @@ impl Rectangle {
                 height,
                 pos,
                 color,
-                ..Default::default()
             },
         })
     }
