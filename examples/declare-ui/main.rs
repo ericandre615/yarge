@@ -4,15 +4,13 @@ extern crate gl;
 use std::path::Path;
 
 use yarge::helpers::*;
-use yarge::helpers::{data};
-use yarge::helpers::timer::{Timer};
 use yarge::resources::Resources;
 use yarge::camera::*;
 use yarge::renderer;
 use yarge::{font, debug};
 use yarge::font::FontRenderer;
 use yarge::rectangle::{Rectangle, RectangleProps};
-use yarge::ui::component::{Component, ComponentProps, Components};
+use yarge::ui::component::{Component};
 use yarge::ui::primitives;
 use yarge::ui::primitives::{View, ViewProps};
 
@@ -71,7 +69,7 @@ fn run() -> Result<(), failure::Error> {
         }
     );
 
-    let mut left_sidebar = Rectangle::new(&RectangleProps {
+    let left_sidebar = Rectangle::new(&RectangleProps {
         width: 280.0,
         height: 400.0,
         pos: (20.0, 100.0),
@@ -173,7 +171,7 @@ fn run() -> Result<(), failure::Error> {
             pos: (0.0, 0.0),
             color: (0.65, 0.65, 0.65, 1.0),
         })?;
-        let mut main_content = Rectangle::new(&RectangleProps {
+        let main_content = Rectangle::new(&RectangleProps {
             width: viewport.w - 340.0,
             height: 600.0,
             pos: (320.0, 100.0),
