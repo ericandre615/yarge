@@ -26,5 +26,6 @@ cargo using the `cargo run --example <name of example(folder)>`. Currently, ther
 - `kitchen-sink`: everything everywhere example
 - `text`: Just text dynamically created by user typing
 - `basic-ui`: Basic UI style layout
+- `animation`: Basic frame based Sprite Animation
 
 All discussions, advice, ideas, etc welcome!
