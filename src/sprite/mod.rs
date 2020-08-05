@@ -4,6 +4,8 @@ use crate::textures::texture::{Texture};
 use crate::textures::transform::{TextureTransform};
 use crate::renderer::renderable::{Renderable2D, RenderVertex};
 
+pub mod animation;
+
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(C, packed)]
@@ -129,7 +131,7 @@ pub struct Sprite {
     pub texture: Texture,
     texture_transform: TextureTransform,
     image_path: String,
-    props: SpriteProps,
+    pub props: SpriteProps,
 }
 
 impl Renderable2D for Sprite {
@@ -197,6 +199,13 @@ impl Sprite {
     pub fn set_frame(&mut self, pos: (f32, f32)) {
         let (x, y) = pos;
         self.texture_transform.set_frame(x, y);
+        self.vertices = update_vertices(&self.texture, &self.props, &self.texture_transform);
+    }
+
+    pub fn set_position(&mut self, pos: (f32, f32, f32)) {
+        let (x, y, z) = pos;
+        self.transform.set_translation((x, y, z));
+        self.props.pos = pos;
         self.vertices = update_vertices(&self.texture, &self.props, &self.texture_transform);
     }
 

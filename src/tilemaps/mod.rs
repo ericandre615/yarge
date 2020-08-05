@@ -25,8 +25,6 @@ pub struct Tileset {
     tile_width: u32,
     tile_height: u32,
     tiles: HashMap<String, Tile>,
-    //rect: [f64; 4],
-    //src_rect: SourceRectangle,
 }
 
 impl Tileset {
