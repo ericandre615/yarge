@@ -4,32 +4,21 @@ use std::collections::HashMap;
 use crate::resources::{Resources};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AnimationData {
+pub struct Animation {
     name: String,
     frames: Vec<(f32, f32)>,
+    #[serde(default)]
     framerate: f32,
-}
-
-impl Default for AnimationData {
-    fn default() -> Self {
-        Self {
-            name: "default".to_string(),
-            frames: vec![(0.0, 0.0)],
-            framerate: 0.1,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Animation {
-    data: AnimationData,
+    #[serde(default)]
     current_frame: usize,
 }
 
 impl Default for Animation {
     fn default() -> Self {
         Self {
-            data: AnimationData { ..Default::default() },
+            name: "default".to_string(),
+            frames: vec![(0.0, 0.0)],
+            framerate: 0.1,
             current_frame: 0,
         }
     }
@@ -38,27 +27,21 @@ impl Default for Animation {
 impl Animation {
     pub fn new(name: String, frames: Vec<(f32, f32)>) -> Animation {
         Animation {
-            data: AnimationData {
-                name,
-                frames,
-                ..Default::default()
-            },
-            current_frame: 0,
+            name,
+            frames,
+            ..Default::default()
         }
     }
 
     pub fn from_json(res: &Resources, path: String) -> Result<Animation, failure::Error> {
         let json = res.load_from_json(&path)?;
-        let animation: AnimationData = serde_json::from_value(json)?;
+        let animation: Animation = serde_json::from_value(json)?;
 
-        Ok(Animation {
-            data: animation,
-            current_frame: 0,
-        })
+        Ok(animation)
     }
 
     pub fn set_current_frame(&mut self, frame: usize) {
-        let frame_bounds = self.data.frames.len() - 1;
+        let frame_bounds = self.frames.len() - 1;
 
         if frame <= frame_bounds {
             self.current_frame = frame;
@@ -68,7 +51,7 @@ impl Animation {
     }
 
     pub fn set_framerate(&mut self, framerate: f32) {
-        self.data.framerate = framerate;
+        self.framerate = framerate;
     }
 }
 
@@ -82,20 +65,17 @@ pub struct Animations {
 
 impl Animations {
     pub fn new(animations: Vec<Animation>) -> Animations {
-        let mut anims = HashMap::new();
+        let mut animation_map = HashMap::new();
 
-        for Animation { data, current_frame } in animations {
-            anims.insert(
-                data.name.to_string(),
-                Animation {
-                    data,
-                    current_frame,
-                }
+        for animation in animations {
+            animation_map.insert(
+                animation.name.to_string(),
+                animation
             );
         }
 
         Animations {
-            animations: anims,
+            animations: animation_map,
             is_playing: false,
             current: None,
             accumulated: 0.0,
@@ -104,7 +84,7 @@ impl Animations {
 
     pub fn from_json(res: &Resources, path: String) -> Result<Animations, failure::Error> {
         let json = res.load_from_json(&path)?;
-        let animations = serde_json::from_value(json)?;
+        let animations: HashMap<String, Animation> = serde_json::from_value(json)?;
 
         Ok(Animations {
             animations,
@@ -115,7 +95,7 @@ impl Animations {
     }
 
     pub fn add(&mut self, animation: Animation) {
-        let name = animation.data.name.to_string();
+        let name = animation.name.to_string();
         self.animations.insert(name, animation);
     }
 
@@ -131,6 +111,10 @@ impl Animations {
         self.current = Some(key.to_string());
     }
 
+    pub fn is_playing(&self) -> bool {
+        self.is_playing
+    }
+
     pub fn play(&mut self, key: &str) {
         self.is_playing = true;
         self.current = Some(key.to_string());
@@ -138,6 +122,10 @@ impl Animations {
 
     pub fn pause(&mut self) {
         self.is_playing = false;
+    }
+
+    pub fn resume(&mut self) {
+        self.is_playing = true;
     }
 
     pub fn stop(&mut self) {
@@ -160,7 +148,7 @@ impl Animations {
                 let animation = self.animations.get(current).unwrap();
                 let i = animation.current_frame;
 
-                animation.data.frames[i]
+                animation.frames[i]
             },
             None => (0.0, 0.0),
         }
@@ -209,8 +197,8 @@ impl Animations {
             };
 
             self.accumulated += dt;
-            while self.accumulated > animation.data.framerate {
-                self.accumulated -= animation.data.framerate;
+            while self.accumulated > animation.framerate {
+                self.accumulated -= animation.framerate;
                 animation.set_current_frame(animation.current_frame + 1);
             }
         }

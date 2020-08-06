@@ -57,7 +57,16 @@ fn run() -> Result<(), failure::Error> {
     let mut spritesheet_as_sprite = Sprite::from_texture(
         texture_manager.get("ninja_spritesheet"),
         SpriteProps {
-            pos: (220.0, 200.0, 0.0),
+            pos: (220.0, 20.0, 0.0),
+            dim: (256, 256),
+            ..Default::default()
+        }
+    )?;
+
+    let mut ninja_sprite = Sprite::from_texture(
+        texture_manager.get("ninja_spritesheet"),
+        SpriteProps {
+            pos: (220.0, 300.0, 0.0),
             dim: (256, 256),
             ..Default::default()
         }
@@ -70,21 +79,28 @@ fn run() -> Result<(), failure::Error> {
         (256.0, 0.0),
         (512.0, 0.0),
         (256.0, 0.0),
+        (0.0, 0.0),
     ];
 
     let walk_animation = Animation::new("walk".to_string(), sprite_frames.clone());
 
+    let walk_anim_from_json = Animation::from_json(&res, "animations/single.json".to_string())?;
+    let anims_from_json = Animations::from_json(&res, "animations/multi.json".to_string())?;
+
     let mut animations_manager = Animations::new(Vec::new());
+    let mut animations_manager_single_json = Animations:: new(vec![walk_anim_from_json]);
     animations_manager.add(walk_animation);
 
     animations_manager.play("walk");
     animations_manager.set_framerate(80.0);
 
+
+    animations_manager_single_json.play("walk_single");
+    animations_manager_single_json.set_framerate(60.0);
+
     let mut timer = Timer::new();
 
     viewport.set_used();
-
-    let mut i = 0;
 
     'main: loop {
         timer.tick();
@@ -113,6 +129,13 @@ fn run() -> Result<(), failure::Error> {
                             let x = sprite_x - 2.0 * dt;
                             spritesheet_as_sprite.set_position((x, sprite_y, sprite_z));
                         },
+                        Some(sdl2::keyboard::Keycode::P) => {
+                            if animations_manager.is_playing() {
+                                animations_manager.pause();
+                            } else {
+                                animations_manager.resume();
+                            }
+                        },
                         _ => break,
                     }
                 },
@@ -123,21 +146,21 @@ fn run() -> Result<(), failure::Error> {
         let dt = timer.delta_time();
 
         animations_manager.update(dt);
+        animations_manager_single_json.update(dt);
 
         let sprite_frame = animations_manager.get_frame();
+        let single_sprite_frame = animations_manager_single_json.get_frame();
 
         renderer.clear();
 
         spritesheet_as_sprite.set_frame(sprite_frame);
-
-        i += 1;
-
-        if i >= sprite_frames.len() - 1 { i = 0; }
+        ninja_sprite.set_frame(single_sprite_frame);
 
         renderer.begin_scene(&camera);
         renderer.begin_batch();
 
         renderer.submit(&spritesheet_as_sprite);
+        renderer.submit(&ninja_sprite);
 
         renderer.end_batch();
         renderer.render(&camera);
