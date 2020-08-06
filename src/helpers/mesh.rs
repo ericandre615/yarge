@@ -1,4 +1,6 @@
+use crate::helpers::{data};
 use crate::resources::Resources;
+use crate::renderer::renderable::{Renderable2D, RenderVertex};
 
 type Position = (f32, f32, f32);
 type UV = (f32, f32);
@@ -29,11 +31,28 @@ pub struct MeshMat {
 
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct MeshVertex {
     pos: (f32, f32, f32),
     uv: (f32, f32),
     norms: (f32, f32, f32),
+}
+
+impl RenderVertex for MeshVertex {
+    fn position(&self) -> data::f32_f32_f32 { //(f32, f32, f32) {
+        let (x, y, z) = self.pos;
+        let scale = 100.0;
+        (x * scale, y * scale, z * scale).into()
+    }
+
+    fn uv(&self) -> data::f32_f32 { //(f32, f32) {
+        self.uv.into()
+    }
+
+    fn color(&self) -> data::f32_f32_f32_f32 { //(f32, f32, f32, f32) {
+        let (x, y, z) = self.norms;
+        (0.6, 0.8, 0.2, 1.0).into()
+    }
 }
 
 #[derive(Debug)]
@@ -46,6 +65,21 @@ pub struct MeshVertices(Vec<MeshTriangle>);
 pub struct Mesh {
     obj: MeshObj,
     //mat: MeshMat,
+}
+
+impl Renderable2D for Mesh {
+    fn vertices(&self) -> Vec<Box<dyn RenderVertex>> {
+        let mut v = Vec::new();
+        let vertices = self.get_vertices();
+
+        for mt in &vertices.0 {
+            for mv in &mt.0 {
+                v.push(Box::new(*mv) as Box<dyn RenderVertex>);
+            }
+        }
+
+        v
+    }
 }
 
 impl Mesh {

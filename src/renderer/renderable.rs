@@ -31,6 +31,19 @@ impl std::fmt::Debug for dyn RenderVertex {
     }
 }
 
+impl std::fmt::Debug for dyn RenderVertex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,
+            "RenderVertex {{ position: {:?}, uv: {:?}, color: {:?}, texture_translate: {:?}, texture_scale: {:?} }}",
+            self.position(),
+            self.uv(),
+            self.color(),
+            self.texture_translate(),
+            self.texture_scale(),
+        )
+    }
+}
+
 pub trait Renderable2D {
     fn texture(&self) -> u32 {
         // default should be 0? or whatever determines

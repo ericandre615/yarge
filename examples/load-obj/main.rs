@@ -10,6 +10,7 @@ use yarge::helpers::{Viewport, mesh};
 use yarge::resources::Resources;
 use yarge::camera::*;
 use yarge::renderer;
+use yarge::renderer::renderable::{Renderable2D, RenderVertex};
 use yarge::{font, debug};
 use yarge::font::FontRenderer;
 
@@ -44,18 +45,18 @@ fn run() -> Result<(), failure::Error> {
     let mut viewport = Viewport::for_window(WIDTH as f32, HEIGHT as f32);
 
     let res = Resources::from_relative_path(Path::new("assets")).unwrap();
-    let mut renderer = renderer::Renderer2D::new(&res)?;
+    let mut renderer = renderer::Renderer2D::new()?;
 
     renderer.set_clear_color(30, 30, 30, 1.0);
 
-    let mut font_renderer = FontRenderer::new(&res, WIDTH, HEIGHT, initial_dpi.0 / 100.0)?;
+    let mut font_renderer = FontRenderer::new(&res, initial_dpi.0 / 100.0)?;
     font_renderer.add_font("dejavu".to_string(), "fonts/dejavu/DejaVuSansMono.ttf");
 
-    let cube_obj_contents = res.load_obj("meshes/cube.obj")?;
+    let cube_obj_contents = res.load_obj("meshes/simple-cube.obj")?;
     let simple_cube_mesh = mesh::Mesh::from_file(&res, "meshes/simple-cube.obj")?;
     let cube_mesh = mesh::Mesh::from_file(&res, "meshes/cube.obj")?;
 
-    println!("MESH {:#?}", cube_mesh);
+    println!("MESH {:#?}", simple_cube_mesh);
 
     let mut ui_camera = Camera::new(viewport.w, viewport.h, Projection::Ortho)?;
 
@@ -87,11 +88,11 @@ Load OBJ and MTL files contents
 
     let simple_cube_verts = simple_cube_mesh.get_vertices();
 
-    println!("SIMPLECUBEVERTS {:#?}", simple_cube_verts);
+    //println!("SIMPLECUBEVERTS {:#?}", simple_cube_verts);
+    println!("SIMPLECUBEVERTS {:#?}", simple_cube_mesh.vertices());
+
 
     let cube_verts = cube_mesh.get_vertices();
-
-    println!("CUBEVERTS {:#?}", cube_verts);
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -111,6 +112,15 @@ Load OBJ and MTL files contents
         }
 
         renderer.clear();
+
+        renderer.begin_scene(&ui_camera);
+        renderer.begin_batch();
+
+        renderer.submit(&simple_cube_mesh);
+
+        renderer.end_batch();
+        renderer.render(&ui_camera);
+        renderer.end_scene();
 
         font_renderer.render(&instruction_text, &ui_camera);
         font_renderer.render(&cube_debug, &ui_camera);
