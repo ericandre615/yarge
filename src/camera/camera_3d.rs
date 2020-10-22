@@ -9,6 +9,8 @@ pub struct Camera3D {
     fov: f32,
     kind: Projection,
     pos: glm::Vec3,
+    is_looking_at: bool,
+    lookat_target: (f32, f32, f32),
 }
 
 impl Camera3D {
@@ -16,7 +18,7 @@ impl Camera3D {
         let aspect = width / height;
         // use glm::radians? is there type for that?
         let fovy = 50.0; // field of view in radians, good default? 50 used by three.js?
-        let projection = glm::perspective(aspect, fov, -10.0, 100.0);
+        let projection = glm::perspective(aspect, fov, 0.5, 100.0);
         let pos = glm::vec3(0.0, 0.0, 0.0);
         let view = glm::translate(&glm::identity(), &pos); //glm::translate(&projection, &glm::vec3(0.0, 0.0, 0.0));
 
@@ -29,6 +31,8 @@ impl Camera3D {
             fov,
             kind,
             pos,
+            is_looking_at: false,
+            lookat_target: (0.0, 0.0, 0.0),
         })
     }
 
@@ -52,9 +56,17 @@ impl Camera3D {
         self.pos
     }
 
+    pub fn get_fov(&self) -> f32 {
+        self.fov
+    }
+
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
         self.pos = glm::vec3(x, y, z);
-        self.view = glm::translate(&glm::identity(), &self.pos);
+        if self.is_looking_at {
+            self.look_at(self.lookat_target);
+        } else {
+            self.view = glm::translate(&glm::identity(), &self.pos);
+        }
     }
 
     pub fn set_pos_x(&mut self, x: f32) {
@@ -83,11 +95,16 @@ impl Camera3D {
         self.update_perspective();
     }
 
-    pub fn update_viewport(&mut self, width: f32, fov: f32, height: f32) {
+    pub fn update_viewport(&mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;
-        self.fov = fov;
         self.aspect = width / height;
+
+        self.update_perspective();
+    }
+
+    pub fn update_fov(&mut self, fov: f32) {
+        self.fov = fov;
 
         self.update_perspective();
     }
@@ -97,10 +114,12 @@ impl Camera3D {
         let (x, y, z) = target;
         let look_at_target = glm::vec3(x, y, z);
 
+        self.is_looking_at = true;
         self.view = glm::look_at(&self.pos, &look_at_target, &up);
     }
 
     pub fn cancel_look_at(&mut self) {
+        self.is_looking_at = false;
         self.view = glm::translate(&glm::identity(), &self.pos);
     }
 

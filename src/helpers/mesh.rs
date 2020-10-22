@@ -39,19 +39,19 @@ pub struct MeshVertex {
 }
 
 impl RenderVertex for MeshVertex {
-    fn position(&self) -> data::f32_f32_f32 { //(f32, f32, f32) {
+    fn position(&self) -> data::f32_f32_f32 {
         let (x, y, z) = self.pos;
         let scale = 100.0;
         (x * scale, y * scale, z * scale).into()
     }
 
-    fn uv(&self) -> data::f32_f32 { //(f32, f32) {
+    fn uv(&self) -> data::f32_f32 {
         self.uv.into()
     }
 
-    fn color(&self) -> data::f32_f32_f32_f32 { //(f32, f32, f32, f32) {
+    fn color(&self) -> data::f32_f32_f32_f32 {
         let (x, y, z) = self.norms;
-        (0.6, 0.8, 0.2, 1.0).into()
+        (1.0, 0.0, 0.0, 1.0).into()
     }
 }
 
@@ -80,6 +80,10 @@ impl Renderable2D for Mesh {
 
         v
     }
+
+    //fn texture(&self) -> u32 {
+    //    1
+    //}
 }
 
 impl Mesh {
@@ -113,7 +117,6 @@ impl Mesh {
                 let nn = *norm as i32 - 1;
                 let p = pp as usize;
                 let n = nn as usize;
-
 
                 let mesh_uv = if uu < 0 {
                     (0.0, 0.0)

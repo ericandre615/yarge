@@ -4,13 +4,16 @@ use crate::renderer::layers;
 use crate::renderer::renderable;
 
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 use layers::*;
 use crate::helpers::{self, data, buffer, system};
-use crate::camera::*;
+use crate::camera::{Camera3D};
 use render_target::{RenderTarget};
 use batch_shaders::{create_fragment_source, create_vertex_source};
 use renderable::{Renderable2D};
+
+// TODO: need Normals
 
 #[derive(VertexAttribPointers)]
 #[derive(Debug)]
@@ -109,7 +112,7 @@ impl Renderer3D {
         })
     }
 
-    pub fn begin_scene(&mut self, camera: &Camera) {
+    pub fn begin_scene(&mut self, camera: &Camera3D) {
         let (width, height) = camera.get_dimensions();
         //self.render_target = Some(
         //    RenderTarget::new(width as u32, height as u32).expect("Could not create RenderTarget")
@@ -140,8 +143,8 @@ impl Renderer3D {
         }
     }
 
-    pub fn end_scene(&self) {
-
+    pub fn end_scene(&mut self) {
+        //self.vertices = Vec::new();
     }
 
     pub fn begin_batch(&mut self) {
@@ -227,7 +230,7 @@ impl Renderer3D {
         }
     }
 
-    pub fn render(&mut self, camera: &Camera) {
+    pub fn render(&mut self, camera: &Camera3D) {
         let (cam_width, cam_height) = camera.get_dimensions();
         let mvp = camera.get_projection() * camera.get_view();
 
@@ -268,12 +271,23 @@ impl Renderer3D {
 
         self.vao.bind();
 
+        //unsafe {
+        //    gl::DrawElements(
+        //        gl::TRIANGLES,
+        //        self.indices.len() as i32 * 6,
+        //        gl::UNSIGNED_INT,
+        //        self.indices.as_ptr() as *const gl::types::GLvoid
+        //    );
+        //}
+
+        // TODO: for now just do all the verts. Later optimization may be to try and do indices
+        let vert_count: i32 = self.vertices.len().try_into().unwrap();
+        println!("VERTCOUNT: {:#?}", vert_count);
         unsafe {
-            gl::DrawElements(
+            gl::DrawArrays(
                 gl::TRIANGLES,
-                self.indices.len() as i32 * 6,
-                gl::UNSIGNED_INT,
-                self.indices.as_ptr() as *const gl::types::GLvoid
+                0,
+                vert_count * 3,
             );
         }
 
